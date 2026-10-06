@@ -192,7 +192,7 @@ next-betterAuth-multiservice-template/
 | `oauthConsent`                           | Consent records (first-party clients skip consent). |
 | `oauthClientAssertion`, `oauthResource`  | Added by oauth-provider 1.7 (client-assertion replay guard, resource indicators). |
 
-The exact columns are generated from the plugins with `@better-auth/cli generate`.
+The exact columns are generated from the plugins with the Better Auth CLI (`pnpm auth:schema` in each database package).
 
 **web_db** (Better Auth core only)
 

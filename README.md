@@ -33,7 +33,7 @@ counterpart of `next-betterAuth-monolith-template`.
 pnpm install
 cp .env.example .env      # replace the change-me secrets
 docker compose up -d      # Postgres, RabbitMQ, Mailpit
-pnpm setup                # Prisma clients, migrations, seed
+pnpm db:setup             # Prisma clients, migrations, seed
 pnpm dev                  # all services
 ```
 
@@ -84,7 +84,7 @@ docs/            Documentation (below)
 | `pnpm build`      | Production build                             |
 | `pnpm type-check` | Type-check everything                        |
 | `pnpm lint`       | Lint everything                              |
-| `pnpm setup`      | Generate clients, migrate, and seed          |
+| `pnpm db:setup`      | Generate clients, migrate, and seed          |
 | `pnpm db:migrate` | Create a migration after a schema change     |
 
 Full list in [docs/development.md](docs/development.md).

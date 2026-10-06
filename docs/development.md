@@ -21,7 +21,7 @@ Running, changing, and debugging the template locally.
 pnpm install
 cp .env.example .env            # then replace the change-me secrets
 docker compose up -d            # Postgres, RabbitMQ, Mailpit
-pnpm setup                      # generate Prisma clients, migrate, seed
+pnpm db:setup                   # generate Prisma clients, migrate, seed
 pnpm dev                        # accounts, web, worker together
 ```
 
@@ -50,7 +50,7 @@ Run from the repo root. Turborepo fans each one out to every app and package tha
 | `pnpm db:migrate`   | Create and apply a new migration (interactive)              |
 | `pnpm db:deploy`    | Apply existing migrations                                   |
 | `pnpm db:seed`      | Seed `accounts_db` (admin user, `web` OAuth client)         |
-| `pnpm setup`        | `db:generate` + `db:deploy` + `db:seed`                     |
+| `pnpm db:setup`        | `db:generate` + `db:deploy` + `db:seed`                     |
 
 Run one service only:
 
@@ -112,5 +112,5 @@ Useful views:
 ```bash
 docker compose down -v          # deletes database and broker volumes
 docker compose up -d
-pnpm setup
+pnpm db:setup
 ```

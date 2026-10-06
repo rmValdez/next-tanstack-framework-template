@@ -56,7 +56,7 @@ ADMIN_OAUTH_CLIENT_SECRET=<32+ chars>
 
 ```bash
 pnpm install
-pnpm setup
+pnpm db:setup
 pnpm dev
 ```
 

@@ -26,11 +26,13 @@ Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/
 
 ## Status (2026-10-06)
 
-- Done: phase 1 (root config, `tsconfig.base.json`, `pnpm install`, containers up) and phase 2
-  (`packages/core`, `packages/ui`), plus all documentation.
-- Not started: phases 3–8. `apps/*`, `packages/accounts-db`, `packages/web-db` are empty. Not a git repo yet.
+- Done: phases 1–3 (root config, `packages/core`, `packages/ui`, `packages/accounts-db`,
+  `packages/web-db` with migrations and seed), plus all documentation.
+- Not started: phases 4–8. `apps/*` are empty.
+- Git: remote `origin` = github.com/rmValdez/next-betterAuth-multiservice-template, branch `main`.
+  No Claude co-author trailers in commits.
 - Ports: infra 5000–5004, apps 5010 (web), 5011 (accounts), 5012 (worker).
-- **Next step:** phase 3 of [docs/implementation-plan.md](docs/implementation-plan.md) (databases).
+- **Next step:** phase 4 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/accounts`).
 
 ## Documentation map
 
@@ -69,8 +71,12 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
 - `consentPage` is a required option. Build a minimal `/consent` page.
 - `storeClientSecret` defaults to `"hashed"` when the JWT plugin is on: SHA-256 → base64url (no
   padding). The seed must store the secret hashed the same way.
-- 1.7 adds models `oauthClientAssertion` and `oauthResource`; generate the schema with
-  `@better-auth/cli generate` rather than copying philgeps' 1.6 schema.
+- 1.7 adds models `oauthClientAssertion`, `oauthResource`, `oauthClientResource`; generate the schema
+  with the CLI from package `auth` (`pnpm auth:schema` in each db package), not `@better-auth/cli`
+  (stuck at 1.4) and not by copying philgeps' 1.6 schema.
+- The token endpoint only accepts the client's registered `tokenEndpointAuthMethod`. The seed
+  registers `web` as `client_secret_basic`, so `web`'s genericOAuth needs `authentication: "basic"`.
+- Root script is `pnpm db:setup` (`pnpm setup` is a pnpm built-in). Pin `prisma@^7` (`latest` is 8 RC).
 - On localhost both apps share a cookie jar, so set distinct `advanced.cookiePrefix` (`accounts`, `web`).
 - Give `web`'s OAuth state cookie `maxAge: 600` (philgeps' `state_mismatch` fix).
 

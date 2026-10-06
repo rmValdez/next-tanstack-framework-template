@@ -18,7 +18,7 @@
     "db:migrate": "turbo db:migrate",
     "db:deploy": "turbo db:deploy",
     "db:seed": "turbo db:seed",
-    "setup": "pnpm db:generate && pnpm db:deploy && pnpm db:seed"
+    "db:setup": "pnpm db:generate && pnpm db:deploy && pnpm db:seed"
   },
   "devDependencies": {
     "prettier": "^3.9.9",

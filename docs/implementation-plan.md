@@ -3,7 +3,7 @@
 Build order for the template, phase by phase. Each phase ends with a check that must pass before
 the next one starts.
 
-> **Status:** phases 1–2 done (2026-10-06). Phases 3–8 not started.
+> **Status:** phases 1–3 done (2026-10-06). Phases 4–8 not started.
 
 ---
 
@@ -11,7 +11,7 @@ the next one starts.
 
 | File                       | Content                                                                  | State   |
 | :------------------------- | :----------------------------------------------------------------------- | :------ |
-| `package.json`             | pnpm root, Turborepo scripts (`dev`, `build`, `type-check`, `db:*`, `setup`) | Done    |
+| `package.json`             | pnpm root, Turborepo scripts (`dev`, `build`, `type-check`, `db:*` incl. `db:setup`) | Done    |
 | `pnpm-workspace.yaml`      | `apps/*`, `packages/*`                                                   | Done    |
 | `turbo.json`               | Task graph; `db:generate` runs before `dev`, `build`, `type-check`       | Done    |
 | `docker-compose.yml`       | Postgres 16 (:5000), RabbitMQ (:5001/:5002), Mailpit (:5003/:5004)      | Done    |
@@ -70,7 +70,8 @@ and gets a broker confirm.
 | `src/client.ts`         | `PrismaPg` adapter, global singleton under a DB-specific key                    |
 | `src/index.ts`          | `accountsDb` export + types                                                     |
 
-The OAuth tables are generated from the plugin with `@better-auth/cli generate`, not hand-copied
+The OAuth tables are generated from the plugin with the Better Auth CLI (`auth generate`, package
+`auth`; the old `@better-auth/cli` stopped at 1.4) via `pnpm auth:schema`, not hand-copied
 from philgeps, because 1.7.7 adds models (`oauthClientAssertion`, `oauthResource`) that 1.6 lacked.
 
 ### `packages/web-db` (`@workspace/web-db`)
@@ -78,7 +79,19 @@ from philgeps, because 1.7.7 adds models (`oauthClientAssertion`, `oauthResource
 Same layout with only the Better Auth core models (`user`, `session`, `account`, `verification`)
 and `WEB_DATABASE_URL`. No seed: `web` users are created by the first sign-in.
 
-**Check:** `pnpm setup` generates both clients, applies migrations, and seeds `accounts_db`.
+**Check:** `pnpm db:setup` generates both clients, applies migrations, and seeds `accounts_db`. ✅
+Verified from empty databases: `accounts_db` 12 tables, `web_db` 4; seed is idempotent; the stored
+client secret equals the plugin's SHA-256/base64url hash. Whether Better Auth actually *uses* these
+tables correctly is proven in phase 4 (discovery, authorize) and phase 6 (token exchange).
+
+Notes from this phase:
+
+- The script is `db:setup`, not `setup`: `pnpm setup` is a built-in pnpm command and never runs
+  the script.
+- Pin `prisma@^7`: npm's `latest` tag points at the 8.0 release candidate.
+- The seed registers `web` with `tokenEndpointAuthMethod: "client_secret_basic"`. The provider
+  rejects any other method than the registered one, so `web`'s `genericOAuth` must set
+  `authentication: "basic"` (phase 6).
 
 ---
 
