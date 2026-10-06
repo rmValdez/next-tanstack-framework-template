@@ -13,7 +13,7 @@ services:
       - "127.0.0.1:5000:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Creates one database per service (accounts_db, web_db) on first start.
+      # Creates accounts_db, company_db (one schema + role per domain) and the shadow databases on first start.
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
     healthcheck:

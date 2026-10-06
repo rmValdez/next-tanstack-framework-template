@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { parseEnv } from "@workspace/core/env";
 import { hashPassword } from "better-auth/crypto";
 import { z } from "zod";
@@ -7,15 +6,70 @@ import { accountsDb } from "../src/client";
 
 const env = parseEnv(
   z.object({
-    NEXT_PUBLIC_WEB_URL: z.string().url(),
-    WEB_OAUTH_CLIENT_ID: z.string().min(1),
-    WEB_OAUTH_CLIENT_SECRET: z
+    NEXT_PUBLIC_HR_URL: z.string().url(),
+    HR_OAUTH_CLIENT_ID: z.string().min(1),
+    HR_OAUTH_CLIENT_SECRET: z
       .string()
-      .min(32, "WEB_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+      .min(32, "HR_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_FINANCE_URL: z.string().url(),
+    FINANCE_OAUTH_CLIENT_ID: z.string().min(1),
+    FINANCE_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "FINANCE_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_RECRUITMENT_URL: z.string().url(),
+    RECRUITMENT_OAUTH_CLIENT_ID: z.string().min(1),
+    RECRUITMENT_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "RECRUITMENT_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_ATTENDANCE_URL: z.string().url(),
+    ATTENDANCE_OAUTH_CLIENT_ID: z.string().min(1),
+    ATTENDANCE_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "ATTENDANCE_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_EXAM_URL: z.string().url(),
+    EXAM_OAUTH_CLIENT_ID: z.string().min(1),
+    EXAM_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "EXAM_OAUTH_CLIENT_SECRET must be at least 32 characters."),
   }),
   process.env,
   "seed"
 );
+
+// One entry per domain app that signs in through accounts. A new app adds its URL and
+// client credentials to the schema above and an entry here.
+const CLIENTS = [
+  {
+    name: "HR",
+    clientId: env.HR_OAUTH_CLIENT_ID,
+    clientSecret: env.HR_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_HR_URL,
+  },
+  {
+    name: "Finance",
+    clientId: env.FINANCE_OAUTH_CLIENT_ID,
+    clientSecret: env.FINANCE_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_FINANCE_URL,
+  },
+  {
+    name: "Recruitment",
+    clientId: env.RECRUITMENT_OAUTH_CLIENT_ID,
+    clientSecret: env.RECRUITMENT_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_RECRUITMENT_URL,
+  },
+  {
+    name: "Attendance",
+    clientId: env.ATTENDANCE_OAUTH_CLIENT_ID,
+    clientSecret: env.ATTENDANCE_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_ATTENDANCE_URL,
+  },
+  {
+    name: "Exam",
+    clientId: env.EXAM_OAUTH_CLIENT_ID,
+    clientSecret: env.EXAM_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_EXAM_URL,
+  },
+];
 
 export const DEFAULT_USER = {
   email: "admin@example.com",
@@ -65,23 +119,25 @@ async function seedAdmin() {
   }
 }
 
-async function seedWebClient() {
-  const webUrl = env.NEXT_PUBLIC_WEB_URL.replace(/\/+$/, "");
+async function seedClient({ name, clientId, clientSecret, url }: (typeof CLIENTS)[number]) {
+  const appUrl = url.replace(/\/+$/, "");
   const now = new Date();
 
   // First-party client: consent is skipped, PKCE is required, and the redirect URI is
   // matched exactly against what genericOAuth sends (`/api/auth/callback/<providerId>`).
   const client = {
-    clientSecret: hashClientSecret(env.WEB_OAUTH_CLIENT_SECRET),
-    name: "Web",
-    uri: webUrl,
-    redirectUris: [`${webUrl}/api/auth/callback/accounts`],
-    postLogoutRedirectUris: [webUrl],
+    clientSecret: hashClientSecret(clientSecret),
+    name,
+    uri: appUrl,
+    redirectUris: [`${appUrl}/api/auth/callback/accounts`],
+    // Matched exactly too. Better Auth's sign-out builds this with `new URL()`, which
+    // always adds the trailing slash.
+    postLogoutRedirectUris: [`${appUrl}/`],
     scopes: ["openid", "profile", "email", "offline_access"],
     grantTypes: ["authorization_code", "refresh_token"],
     responseTypes: ["code"],
-    // The token endpoint rejects any other method than the registered one, so `web`'s
-    // genericOAuth config must use `authentication: "basic"`.
+    // The token endpoint rejects any other method than the registered one, so the app's
+    // genericOAuth config must use `tokenEndpointAuth: { method: "client_secret_basic" }`.
     tokenEndpointAuthMethod: "client_secret_basic",
     applicationType: "web",
     skipConsent: true,
@@ -92,19 +148,21 @@ async function seedWebClient() {
   };
 
   await accountsDb.oauthClient.upsert({
-    where: { clientId: env.WEB_OAUTH_CLIENT_ID },
+    where: { clientId },
     update: client,
-    create: { id: randomUUID(), clientId: env.WEB_OAUTH_CLIENT_ID, createdAt: now, ...client },
+    create: { id: randomUUID(), clientId, createdAt: now, ...client },
   });
 }
 
 async function main() {
   await seedAdmin();
-  await seedWebClient();
+  for (const client of CLIENTS) {
+    await seedClient(client);
+  }
 
   console.log("Seeded accounts_db:");
-  console.log(`  User:         ${DEFAULT_USER.email} / ${DEFAULT_USER.password}`);
-  console.log(`  OAuth client: ${env.WEB_OAUTH_CLIENT_ID}`);
+  console.log(`  User:          ${DEFAULT_USER.email} / ${DEFAULT_USER.password}`);
+  console.log(`  OAuth clients: ${CLIENTS.map((c) => c.clientId).join(", ")}`);
 }
 
 main()

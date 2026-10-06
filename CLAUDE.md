@@ -6,16 +6,21 @@ Context for Claude Code sessions in this repo. Read this first, then the docs it
 
 `next-tanstack-framework-template` (renamed from `next-betterAuth-multiservice-template` on
 2026-10-06): the company's **multi-service** full-stack starter in one pnpm + Turborepo
-monorepo. Three separately running services:
+monorepo, built around the company's real domain apps (D15):
 
 - `apps/accounts` (Next.js 15, :5011): identity provider. Better Auth + `jwt` + `oauthProvider`.
-  Owns users and passwords in `accounts_db`.
-- `apps/web` (Next.js 15, :5010): example client app. Signs in through `accounts` with Better Auth
-  `genericOAuth` (OIDC + PKCE), keeps a shadow user and its own session in `web_db`.
+  Owns users and passwords in `accounts_db` (always a separate database).
+- Domain apps (Next.js 15): `apps/hr` (:5010, the reference implementation), `finance` (:5013),
+  `recruitment` (:5014), `attendance` (:5015), `exam` (:5016). Each signs in through `accounts`
+  with Better Auth `genericOAuth` (OIDC + PKCE) and keeps a shadow user, its own session and its
+  domain data in its own schema of `company_db`, written only by its Postgres role
+  (`<app>_app`). Other domains read it only through `<app>_public` views.
 - `apps/worker` (Express, :5012): consumes email jobs from RabbitMQ, sends via SMTP (Mailpit in dev).
+- Planned: `apps/realtime` (Socket.IO, :5017), phase 9.
 
-Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/adapter-pg`),
-`packages/core` (env, URLs, queue types + producer), `packages/ui` (components, Tailwind preset).
+Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 7 +
+`@prisma/adapter-pg`, `?schema=<app>`), `packages/core` (env, URLs, queue types + producer),
+`packages/ui` (components, Tailwind preset).
 
 ## Where it comes from
 
@@ -27,15 +32,23 @@ Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/
 
 ## Status (2026-10-06)
 
-- Done: phases 1–5 (root config, `packages/*`, `apps/accounts`, `apps/worker`), plus all
-  documentation. `accounts` is verified with curl through the full OIDC code flow; sign-up and
-  reset emails are verified end to end through the worker into Mailpit.
-- Not started: phases 6–8 (`apps/web`, verification, final docs).
+- Done: phases 1–6 (root config, `packages/*`, `apps/accounts`, `apps/worker`, `apps/hr`).
+  `apps/web` was replaced by `apps/hr` on `company_db` (D15). All verified with curl
+  (OIDC round-trip, emails into Mailpit, HR API, sign-out everywhere).
+- Scaffolded (copied from `hr`, sign-in verified, no domain features yet): `finance`,
+  `recruitment`, `attendance`, `exam`. The generator logic: copy `apps/hr` minus
+  `src/features` + employee routes, copy `packages/hr-db` with only the Better Auth models
+  re-tagged `@@schema("<app>")`, then add role/schema to `init.sql`, env vars, `core/urls.ts`,
+  accounts `trustedOrigins` and seed `CLIENTS`, `turbo.json`.
+- Not started: domain features of phases 7–10, `apps/realtime`, phase 11 (verification and
+  docs). README/ARCHITECTURE/auth-flows/configuration still describe `web`; rewrite them for the
+  domain apps (phase 11, or sooner).
 - Git: remote `origin` = github.com/rmValdez/next-tanstack-framework-template, branch `main`.
   No Claude co-author trailers in commits.
-- Ports: infra 5000–5004, apps 5010 (web), 5011 (accounts), 5012 (worker).
-- **Next step:** phase 6 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/web`):
-  genericOAuth client of `accounts`, shadow user in `web_db`, own session.
+- Ports: infra 5000–5004; apps 5010 hr, 5011 accounts, 5012 worker, 5013 finance,
+  5014 recruitment, 5015 attendance, 5016 exam, 5017 realtime.
+- **Next step:** phase 7 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/finance`):
+  `finance` schema + role, reads `hr_public.employee_directory_v1`, copies `apps/hr`'s structure.
 
 ## Documentation map
 
@@ -68,7 +81,7 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
 
 - OIDC endpoints on accounts: `/api/auth/oauth2/{authorize,token,userinfo,end-session,revoke,introspect,consent,continue}`,
   discovery at `/api/auth/.well-known/openid-configuration`, keys at `/api/auth/jwks`.
-- `web`'s redirect URI: `${NEXT_PUBLIC_WEB_URL}/api/auth/callback/accounts` (genericOAuth registers as a provider; callback path is `/callback/:id`).
+- A domain app's redirect URI: `${NEXT_PUBLIC_<APP>_URL}/api/auth/callback/accounts` (genericOAuth registers as a social provider; callback path is `/callback/:id`). Sign in with `signIn.social({ provider: "accounts" })`; there is no genericOAuth client plugin in 1.7.
 - `oauthProvider` redirects to `loginPage` with a **signed** query (`sig`, `exp`). On `/login`, the
   auth client must include `oauthProviderClient()` (from `@better-auth/oauth-provider/client`); it
   attaches `oauth_query` to the sign-in POST and the server resumes authorization. No manual redirect.
@@ -79,10 +92,12 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
   with the CLI from package `auth` (`pnpm auth:schema` in each db package), not `@better-auth/cli`
   (stuck at 1.4) and not by copying philgeps' 1.6 schema.
 - The token endpoint only accepts the client's registered `tokenEndpointAuthMethod`. The seed
-  registers `web` as `client_secret_basic`, so `web`'s genericOAuth needs `authentication: "basic"`.
+  registers each app as `client_secret_basic`, so its genericOAuth needs `tokenEndpointAuth: { method: "client_secret_basic" }`.
+- `signOut()` also ends the accounts session (RP-initiated logout) unless called with
+  `disableRedirect: true`. `post_logout_redirect_uri` always has a trailing slash; the seed registers it that way.
 - Root script is `pnpm db:setup` (`pnpm setup` is a pnpm built-in). Pin `prisma@^7` (`latest` is 8 RC).
-- On localhost both apps share a cookie jar, so set distinct `advanced.cookiePrefix` (`accounts`, `web`).
-- Give `web`'s OAuth state cookie `maxAge: 600` (philgeps' `state_mismatch` fix).
+- On localhost all apps share a cookie jar, so set distinct `advanced.cookiePrefix` (`accounts`, `hr`, ...).
+- Give each app's OAuth state cookie `maxAge: 600` (philgeps' `state_mismatch` fix).
 - Issuer is `${NEXT_PUBLIC_ACCOUNTS_URL}/api/auth`; ID tokens are EdDSA (Ed25519). A failed client
   auth at `/oauth2/token` consumes the authorization code.
 

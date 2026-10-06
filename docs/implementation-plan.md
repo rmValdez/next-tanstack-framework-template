@@ -3,22 +3,27 @@
 Build order for the template, phase by phase. Each phase ends with a check that must pass before
 the next one starts.
 
-> **Status:** phases 1–5 done (2026-10-06). Phases 6–8 not started.
+> **Status (2026-10-06):** phases 1–6 done. Phase 6 replaced the generic `web` client with `hr` on
+> `company_db` ([D15](decisions.md#d15-real-domain-apps-on-company_db-not-a-generic-example-app)).
+> `finance`, `recruitment`, `attendance` and `exam` are **scaffolded** from `hr`: app, `<app>-db`
+> package (Better Auth tables only), role, schema + `_public` schema, OAuth client, port. Sign-in,
+> dashboard and sign-out everywhere verified for each; `finance_app` is denied on `hr`, `hr_public`
+> and `exam`. Their domain features (phases 7–10), `realtime`, and phase 11 are not started.
 
 ---
 
 ## Phase 1: Root tooling
 
-| File                       | Content                                                                  | State   |
-| :------------------------- | :----------------------------------------------------------------------- | :------ |
-| `package.json`             | pnpm root, Turborepo scripts (`dev`, `build`, `type-check`, `db:*` incl. `db:setup`) | Done    |
-| `pnpm-workspace.yaml`      | `apps/*`, `packages/*`                                                   | Done    |
-| `turbo.json`               | Task graph; `db:generate` runs before `dev`, `build`, `type-check`       | Done    |
-| `docker-compose.yml`       | Postgres 16 (:5000), RabbitMQ (:5001/:5002), Mailpit (:5003/:5004)      | Done    |
-| `docker/postgres/init.sql` | Creates `accounts_db`, `web_db`                                          | Done    |
-| `.env.example`             | All variables, documented                                                | Done    |
-| `.gitignore`, `.prettierrc`, `.prettierignore`, `LICENSE` | Copied/adapted from the monolith template | Done    |
-| `tsconfig.base.json`       | Shared strict compiler options                                           | Done    |
+| File                                                      | Content                                                                              | State |
+| :-------------------------------------------------------- | :----------------------------------------------------------------------------------- | :---- |
+| `package.json`                                            | pnpm root, Turborepo scripts (`dev`, `build`, `type-check`, `db:*` incl. `db:setup`) | Done  |
+| `pnpm-workspace.yaml`                                     | `apps/*`, `packages/*`                                                               | Done  |
+| `turbo.json`                                              | Task graph; `db:generate` runs before `dev`, `build`, `type-check`                   | Done  |
+| `docker-compose.yml`                                      | Postgres 16 (:5000), RabbitMQ (:5001/:5002), Mailpit (:5003/:5004)                   | Done  |
+| `docker/postgres/init.sql`                                | Creates `accounts_db`, `web_db`                                                      | Done  |
+| `.env.example`                                            | All variables, documented                                                            | Done  |
+| `.gitignore`, `.prettierrc`, `.prettierignore`, `LICENSE` | Copied/adapted from the monolith template                                            | Done  |
+| `tsconfig.base.json`                                      | Shared strict compiler options                                                       | Done  |
 
 **Check:** `docker compose up -d` starts all three containers, both databases exist, and
 `pnpm install` succeeds. ✅
@@ -29,23 +34,23 @@ the next one starts.
 
 ### `packages/core` (`@workspace/core`)
 
-| File                     | Content                                                                       |
-| :----------------------- | :---------------------------------------------------------------------------- |
-| `src/env.ts`             | `parseEnv(schema, input, scope)` from the monolith, `MIN_PASSWORD_LENGTH`     |
-| `src/urls.ts`            | `accountsUrl`, `webUrl` read from `NEXT_PUBLIC_*` literals                    |
-| `src/redirect.ts`        | `safeRedirectPath()`: same-origin paths only                                  |
-| `src/queue/types.ts`     | `QUEUE_NAMES`, `EmailJob` union (`verify-email`, `reset-password`)            |
-| `src/queue/topology.ts`  | `assertEmailQueues()`: quorum `email` queue with delivery limit + `email.dlq`, shared by producer and consumer |
-| `src/queue/producer.ts`  | Lazy amqplib connection, confirm channel, persistent messages, `publishEmail()` |
+| File                    | Content                                                                                                        |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------- |
+| `src/env.ts`            | `parseEnv(schema, input, scope)` from the monolith, `MIN_PASSWORD_LENGTH`                                      |
+| `src/urls.ts`           | `accountsUrl`, `webUrl` read from `NEXT_PUBLIC_*` literals                                                     |
+| `src/redirect.ts`       | `safeRedirectPath()`: same-origin paths only                                                                   |
+| `src/queue/types.ts`    | `QUEUE_NAMES`, `EmailJob` union (`verify-email`, `reset-password`)                                             |
+| `src/queue/topology.ts` | `assertEmailQueues()`: quorum `email` queue with delivery limit + `email.dlq`, shared by producer and consumer |
+| `src/queue/producer.ts` | Lazy amqplib connection, confirm channel, persistent messages, `publishEmail()`                                |
 
 ### `packages/ui` (`@workspace/ui`)
 
-| File               | Content                                   |
-| :----------------- | :---------------------------------------- |
-| `src/button.tsx`   | Ported `Button` (variants, loading state) |
-| `src/card.tsx`     | Ported `Card` family                      |
-| `src/input.tsx`    | Ported `Input`                            |
-| `src/cn.ts`        | `clsx` + `tailwind-merge`                 |
+| File                 | Content                                                                                                                                  |
+| :------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/button.tsx`     | Ported `Button` (variants, loading state)                                                                                                |
+| `src/card.tsx`       | Ported `Card` family                                                                                                                     |
+| `src/input.tsx`      | Ported `Input`                                                                                                                           |
+| `src/cn.ts`          | `clsx` + `tailwind-merge`                                                                                                                |
 | `tailwind-preset.ts` | Shared theme tokens from the monolith's `tailwind.config.ts`, plus `glass`, `glass-card`, `text-gradient` (so `Card` works in every app) |
 
 Packages export TypeScript source directly. Next apps compile them through `transpilePackages`,
@@ -61,14 +66,14 @@ and gets a broker confirm.
 
 ### `packages/accounts-db` (`@workspace/accounts-db`)
 
-| File                    | Content                                                                         |
-| :---------------------- | :------------------------------------------------------------------------------ |
-| `prisma/schema.prisma`  | Better Auth core + `jwt` + `oauthProvider` models, generator `prisma-client` → `prisma/generated` |
-| `prisma.config.ts`      | Loads root `.env`, points at `ACCOUNTS_DATABASE_URL`                            |
-| `prisma/migrations/`    | Initial migration                                                               |
-| `prisma/seed.ts`        | Admin user (verified, scrypt hash) + `web` OAuth client (SHA-256 hashed secret, `skipConsent`, PKCE, exact redirect URI) |
-| `src/client.ts`         | `PrismaPg` adapter, global singleton under a DB-specific key                    |
-| `src/index.ts`          | `accountsDb` export + types                                                     |
+| File                   | Content                                                                                                                  |
+| :--------------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| `prisma/schema.prisma` | Better Auth core + `jwt` + `oauthProvider` models, generator `prisma-client` → `prisma/generated`                        |
+| `prisma.config.ts`     | Loads root `.env`, points at `ACCOUNTS_DATABASE_URL`                                                                     |
+| `prisma/migrations/`   | Initial migration                                                                                                        |
+| `prisma/seed.ts`       | Admin user (verified, scrypt hash) + `web` OAuth client (SHA-256 hashed secret, `skipConsent`, PKCE, exact redirect URI) |
+| `src/client.ts`        | `PrismaPg` adapter, global singleton under a DB-specific key                                                             |
+| `src/index.ts`         | `accountsDb` export + types                                                                                              |
 
 The OAuth tables are generated from the plugin with the Better Auth CLI (`auth generate`, package
 `auth`; the old `@better-auth/cli` stopped at 1.4) via `pnpm auth:schema`, not hand-copied
@@ -81,7 +86,7 @@ and `WEB_DATABASE_URL`. No seed: `web` users are created by the first sign-in.
 
 **Check:** `pnpm db:setup` generates both clients, applies migrations, and seeds `accounts_db`. ✅
 Verified from empty databases: `accounts_db` 12 tables, `web_db` 4; seed is idempotent; the stored
-client secret equals the plugin's SHA-256/base64url hash. Whether Better Auth actually *uses* these
+client secret equals the plugin's SHA-256/base64url hash. Whether Better Auth actually _uses_ these
 tables correctly is proven in phase 4 (discovery, authorize) and phase 6 (token exchange).
 
 Notes from this phase:
@@ -97,16 +102,16 @@ Notes from this phase:
 
 ## Phase 4: `apps/accounts`
 
-| Area        | Files                                                                                       |
-| :---------- | :------------------------------------------------------------------------------------------ |
-| Config      | `next.config.ts` (loads root `.env`, `transpilePackages`, `serverExternalPackages: ["amqplib"]`), `tailwind.config.ts`, `postcss.config.js`, `eslint.config.mjs`, `tsconfig.json` |
-| Auth server | `src/lib/auth.ts`: monolith config + `jwt()`, `oauthProvider({ loginPage: "/login", consentPage: "/consent" })`, `trustedOrigins`, `cookiePrefix: "accounts"`, `nextCookies()`; email senders call `publishEmail()` |
-| Auth client | `src/lib/auth-client.ts`: `createAuthClient` + `oauthProviderClient()`                     |
-| Server env  | `src/lib/config.server.ts`: `ACCOUNTS_DATABASE_URL`, `ACCOUNTS_AUTH_SECRET`, `RABBITMQ_URL` |
-| Guards      | `src/lib/session.ts`: `requireAuth()`, `getCurrentSession()`                                |
-| Route handler | `src/app/api/auth/[...all]/route.ts`, `src/app/api/health/route.ts`                       |
-| Pages       | `/` (landing), `/login` (ported `LoginForm`), `/forgot-password`, `/reset-password`, `/email-verified`, `/account` (protected profile), `/consent` (minimal accept/deny) |
-| Shared UI   | Ported `QueryProvider`, `useAuthSession`, `error.tsx`, `not-found.tsx`, `globals.css`       |
+| Area          | Files                                                                                                                                                                                                               |
+| :------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Config        | `next.config.ts` (loads root `.env`, `transpilePackages`, `serverExternalPackages: ["amqplib"]`), `tailwind.config.ts`, `postcss.config.js`, `eslint.config.mjs`, `tsconfig.json`                                   |
+| Auth server   | `src/lib/auth.ts`: monolith config + `jwt()`, `oauthProvider({ loginPage: "/login", consentPage: "/consent" })`, `trustedOrigins`, `cookiePrefix: "accounts"`, `nextCookies()`; email senders call `publishEmail()` |
+| Auth client   | `src/lib/auth-client.ts`: `createAuthClient` + `oauthProviderClient()`                                                                                                                                              |
+| Server env    | `src/lib/config.server.ts`: `ACCOUNTS_DATABASE_URL`, `ACCOUNTS_AUTH_SECRET`, `RABBITMQ_URL`                                                                                                                         |
+| Guards        | `src/lib/session.ts`: `requireAuth()`, `getCurrentSession()`                                                                                                                                                        |
+| Route handler | `src/app/api/auth/[...all]/route.ts`, `src/app/api/health/route.ts`                                                                                                                                                 |
+| Pages         | `/` (landing), `/login` (ported `LoginForm`), `/forgot-password`, `/reset-password`, `/email-verified`, `/account` (protected profile), `/consent` (minimal accept/deny)                                            |
+| Shared UI     | Ported `QueryProvider`, `useAuthSession`, `error.tsx`, `not-found.tsx`, `globals.css`                                                                                                                               |
 
 `/consent` is built even though `web` skips consent, because `consentPage` is required and a
 third-party client would otherwise hit a 404 (philgeps left this unbuilt).
@@ -137,14 +142,14 @@ Notes:
 
 ## Phase 5: `apps/worker`
 
-| File                    | Content                                                               |
-| :---------------------- | :-------------------------------------------------------------------- |
-| `src/config.ts`         | Zod-validated `RABBITMQ_URL`, `SMTP_*`, `WORKER_PORT`                 |
-| `src/index.ts`          | Starts HTTP server + consumer, graceful shutdown on SIGINT/SIGTERM    |
-| `src/server.ts`         | Express: `GET /health` (reports broker connection)                    |
-| `src/consumer.ts`       | Connect with retry, `prefetch(5)`, ack on success, nack on failure    |
-| `src/email/templates.ts` | `verify-email`, `reset-password`: subject, text, escaped HTML       |
-| `src/email/mailer.ts`   | nodemailer transport                                                  |
+| File                     | Content                                                            |
+| :----------------------- | :----------------------------------------------------------------- |
+| `src/config.ts`          | Zod-validated `RABBITMQ_URL`, `SMTP_*`, `WORKER_PORT`              |
+| `src/index.ts`           | Starts HTTP server + consumer, graceful shutdown on SIGINT/SIGTERM |
+| `src/server.ts`          | Express: `GET /health` (reports broker connection)                 |
+| `src/consumer.ts`        | Connect with retry, `prefetch(5)`, ack on success, nack on failure |
+| `src/email/templates.ts` | `verify-email`, `reset-password`: subject, text, escaped HTML      |
+| `src/email/mailer.ts`    | nodemailer transport                                               |
 
 Failed jobs are retried a limited number of times, then dead-lettered to `email.dlq` instead of
 requeued forever (philgeps requeues indefinitely).
@@ -171,65 +176,99 @@ Notes:
 
 ---
 
-## Phase 6: `apps/web`
+## Phase 6: `apps/hr` on `company_db` (reference domain app)
 
-| Area        | Files                                                                                     |
-| :---------- | :---------------------------------------------------------------------------------------- |
-| Auth server | `src/lib/auth.ts`: `genericOAuth({ providerId: "accounts", discoveryUrl, pkce: true, overrideUserInfo: true })`, `cookiePrefix: "web"`, 10-minute state cookie, `nextCookies()` |
-| Auth client | `src/lib/auth-client.ts`: `createAuthClient` + `genericOAuthClient()`, `signInWithAccounts()` with an in-flight guard |
-| Server env  | `src/lib/config.server.ts`: `WEB_DATABASE_URL`, `WEB_AUTH_SECRET`, `WEB_OAUTH_CLIENT_*`  |
-| Guards      | `src/lib/session.ts`: `requireAuth()` redirects to `/sso/start?redirectTo=…`              |
-| Pages       | `/` (landing + sign-in), `/sso/start` (auto handshake, health pre-flight), `/dashboard` (protected), sign-out menu |
-| Route handler | `src/app/api/auth/[...all]/route.ts`                                                    |
+Replaces the generic `web` client planned earlier
+([D15](decisions.md#d15-real-domain-apps-on-company_db-not-a-generic-example-app)). The sign-in code
+built for `web` carried over unchanged apart from names.
 
-**Check:** on :5010, "Sign in" goes to accounts, comes back signed in, `/dashboard` shows the user;
-a second sign-in is one click; sign-out works; `web_db.user` holds the shadow row.
+| Area         | Files                                                                                                                                                                                                                           |
+| :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Database     | `docker/postgres/init.sql`: `company_db`, role `hr_app`, schemas `hr` + `hr_public`, `hr_shadow`                                                                                                                                |
+| Data package | `packages/hr-db`: `schemas = ["hr"]`, Better Auth tables + `Department`, `Employee`; migration `*_public_views` creates `hr_public.employee_directory_v1` (no salary); `prisma/seed.ts`                                         |
+| Auth         | `src/lib/auth.ts`: `genericOAuth` provider `accounts` (`tokenEndpointAuth: client_secret_basic`, PKCE, `requireIdTokenVerification`, `overrideUserInfo`, `postLogoutRedirectURI`), `cookiePrefix: "hr"`, 10-minute state cookie |
+| Sign-in      | `src/lib/auth-client.ts`: `signInWithAccounts()` = `signIn.social({ provider: "accounts" })` with an in-flight guard; `/sso/start` with an accounts health pre-flight                                                           |
+| Guards       | `requireAuth(path)` in each page (cached per request); `requireApiSession()` for route handlers (401)                                                                                                                           |
+| Domain API   | `GET/POST /api/employees`, `GET /api/departments`; Zod schema shared with the form; 409 on duplicate number or email                                                                                                            |
+| UI           | `/dashboard` (headcount, identity link), `/employees` (TanStack Table v9 with sorting + search, TanStack Form create form, TanStack Query)                                                                                      |
+| accounts     | Seed registers clients from a list (`hr` first); `postLogoutRedirectUris` with a trailing slash                                                                                                                                 |
+
+Verified 2026-10-06 (curl, one cookie jar):
+
+- ✅ `/dashboard` without a session → 307 `/sso/start?redirectTo=%2Fdashboard`.
+- ✅ Sign-in → accounts `/login` (signed query) → callback → `/dashboard` 200. The shadow user and the
+  `accounts:<sub>` link are in `hr.user` / `hr.account`, so Better Auth tables inside a domain
+  schema work (the shared-database spike had not tested this).
+- ✅ `/api/employees` without a session → 401; create → 201 (email normalized); duplicate → 409;
+  invalid body → 400 with field errors. The new row appears in `hr_public.employee_directory_v1`
+  without salary.
+- ✅ Sign out of HR only → the next sign-in skips `/login`. Sign out everywhere → accounts
+  end-session → 302 back to `http://localhost:5010/`, accounts session gone.
+- ✅ Migrations run as `hr_app`; `migrate status` clean.
+
+Notes and gotchas:
+
+- Better Auth 1.7: genericOAuth has no client plugin; sign in with `signIn.social`. `signOut()` also
+  signs out of accounts unless called with `disableRedirect: true`.
+- Better Auth builds `post_logout_redirect_uri` with `new URL()`, so it always ends in `/`. The
+  registered URI must match exactly.
+- Prisma 7 `migrate dev` does not run `generate`; run `pnpm db:generate` after schema changes.
+- Match Prisma errors by `error.code`, not `instanceof`: Next bundles the workspace package, so the
+  error can come from another copy of the class.
+- A guarded page under a `loading.tsx` boundary redirects inside the HTML stream (status 200), not
+  with a 307. Guarded pages have no `loading.tsx`.
+
+Open (designed later, not blocking): authorization beyond "signed in" (needs a role claim from
+`accounts` or an HR permission table); HR domain events (designed with finance as the consumer).
 
 ---
 
-## Phase 7: Verification
+## Phase 7: `apps/finance` (cross-domain read)
 
-| Command / test                       | Expectation                                       |
-| :----------------------------------- | :------------------------------------------------ |
-| `pnpm type-check`                    | Passes for all apps and packages                  |
-| `pnpm lint`                          | No errors                                         |
-| `pnpm build`                         | Both Next apps build; worker type-checks          |
-| Manual: full SSO round-trip          | Section 3 of [auth-flows.md](auth-flows.md) works step by step |
-| Manual: broker down                  | Sign-up still succeeds; error logged in accounts  |
-| Manual: tampered `/login` query      | Sign-in rejected with `invalid_signature`         |
-| Manual: wrong client secret          | Token exchange fails; `web` shows a login error   |
+Role `finance_app`, schema `finance`, `packages/finance-db` with `schemas = ["finance", "hr_public"]`
+reading `employee_directory_v1` as a Prisma `view`. Minimal payroll records keyed by HR's employee
+id (no foreign key). First RabbitMQ domain event between domains. Port 5013.
 
----
+## Phase 8: `apps/recruitment`
 
-## Phase 8: Documentation
+Applicants, vacancies, pipeline. An "applicant hired" event makes HR create the employee (HR stays
+the only writer of `hr.employees`). Port 5014.
 
-- `README.md`: quick start, scripts, ports.
-- Finalize `ARCHITECTURE.md` and everything in `docs/` against the built code.
-- Remove the "planned" status banners.
+## Phase 9: `apps/attendance` + `apps/realtime`
 
----
+Time entries in the `attendance` schema. `realtime` (Socket.IO, port 5017) authenticates sockets
+with an access token from `accounts` and fans out RabbitMQ events (clock-in) to HR and dashboards.
+Settles the [real-time design questions](company-stack.md#real-time-open-design-questions).
+Attendance on port 5015.
 
-## Later phases
+## Phase 10: `apps/exam`
 
-Not part of v1; listed so the [company stack](company-stack.md) items marked "not included yet"
-have a home.
+Exams, questions, attempts, results. Choose Next.js or TanStack Start based on the exam-taking UI
+(live timers, proctoring events) and document the reason
+([D14](decisions.md#d14-nextjs-default-tanstack-libraries-tanstack-start-by-exception)). Port 5016.
 
-| Phase | Content |
-| :---- | :------ |
-| 9 | Second client app (e.g. `admin`) to prove [adding-a-service.md](adding-a-service.md) works unchanged |
-| 10 | TanStack Table + Form example in a client app |
-| 11 | TanStack Start example client signing in through `accounts` |
-| 12 | Real-time service (Socket.IO), after the design questions in [company-stack.md](company-stack.md#real-time-open-design-questions) are settled |
+## Phase 11: Verification and documentation
+
+| Command / test                                                | Expectation                                                     |
+| :------------------------------------------------------------ | :-------------------------------------------------------------- |
+| `pnpm type-check`, `pnpm lint`, `pnpm build`                  | Pass for every app and package                                  |
+| Fresh clone: `docker compose up`, `pnpm db:setup`, `pnpm dev` | Every app starts and signs in                                   |
+| Role isolation                                                | Each `<domain>_app` is denied on other domains' private schemas |
+| Broker down                                                   | Sign-up still succeeds; the error is logged in accounts         |
+
+Docs: README, ARCHITECTURE, auth-flows, configuration, adding-a-service and deployment describe the
+domain apps; `docs/shared-database/` becomes the main data-architecture guide.
 
 ---
 
 ## Estimated effort
 
-| Phase | Size   |
-| :---- | :----- |
-| 1–2   | Small  |
-| 3     | Medium (Prisma 7 + plugin schema) |
+| Phase | Size                                           |
+| :---- | :--------------------------------------------- |
+| 1–2   | Small                                          |
+| 3     | Medium (Prisma 7 + plugin schema)              |
 | 4     | Large (most UI is ported, OAuth wiring is new) |
-| 5     | Small  |
-| 6     | Medium |
-| 7–8   | Medium |
+| 5     | Small                                          |
+| 6     | Medium                                         |
+| 7–10  | Medium each                                    |
+| 11    | Medium                                         |

@@ -14,6 +14,8 @@ added at the bottom.
 
 ### D2. One database per service
 
+- **Status:** superseded by D15 for business domains (2026-10-06). Still the right choice for a
+  service that needs full isolation; `accounts_db` stays separate under both.
 - **Chosen:** `accounts_db`, `web_db`.
 - **Alternative:** one database, schemas per service.
 - **Why:** enforces the ownership rule at the connection level. A service can move to its own server
@@ -76,8 +78,7 @@ added at the bottom.
 
 ### D13. Shared database variant with schema ownership
 
-- **Status:** accepted as a documented variant for platforms with tightly coupled domains. The
-  template default stays D2.
+- **Status:** accepted; promoted from variant to the main design by D15 (2026-10-06).
 - **Chosen:** `accounts_db` stays separate; domains share `company_db` with one schema and one role
   per domain, ownership enforced by grants, cross-domain reads through versioned `_public` views,
   cross-domain writes through the owner's API or events, no cross-owner foreign keys, one Prisma
@@ -101,3 +102,24 @@ added at the bottom.
   so they don't require a second framework. Because sign-in, data and jobs are protocol boundaries
   (OIDC, database, queue), a Start app plugs into the same `accounts` without changes. Details:
   [company-stack.md](company-stack.md).
+
+### D15. Real domain apps on `company_db`, not a generic example app
+
+- **Date:** 2026-10-06.
+- **Chosen:** the template is built around the company's real domain apps instead of a generic
+  `web` client: `hr`, `finance`, `recruitment`, `attendance`, `exam`, plus `realtime` (Socket.IO)
+  and `worker`. Each starts with minimal features but shows the full pattern: OIDC sign-in through
+  `accounts`, its own schema in `company_db` (D13 rules, enforced by Postgres roles), a domain API,
+  TanStack Query/Table/Form, cross-domain reads through `<domain>_public` views, and events where a
+  workflow crosses domains. `accounts_db` stays separate. Built one at a time; `hr` is the reference
+  implementation the others copy.
+- **Order:** hr → finance (reads `hr_public`) → recruitment → attendance + realtime → exam.
+- **Framework per app:** Next.js by default (D14). TanStack Start only where an app documents the
+  reason; candidates are a highly interactive finance-operations UI or live exam-taking.
+- **Alternative:** keep `web` as the only example client and document domain apps as a guide (the
+  previous plan), or one database per domain (D2).
+- **Why:** an example that mirrors the real platform shows the decisions teams actually face
+  (schema ownership, cross-domain reads, events) instead of leaving them to each project. The
+  coupled domains need cheap reads across each other, which D13 provides without shared writes.
+- **Consequences:** `apps/web` became `apps/hr`; `packages/web-db` became `packages/hr-db` on
+  `company_db?schema=hr` with role `hr_app`; `web_db` is no longer created.

@@ -1,7 +1,14 @@
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { accountsDb } from "@workspace/accounts-db";
 import { MIN_PASSWORD_LENGTH } from "@workspace/core/env";
-import { accountsUrl, webUrl } from "@workspace/core/urls";
+import {
+  accountsUrl,
+  hrUrl,
+  financeUrl,
+  recruitmentUrl,
+  attendanceUrl,
+  examUrl,
+} from "@workspace/core/urls";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
@@ -18,9 +25,9 @@ export const auth = betterAuth({
   }),
   secret: serverEnv.ACCOUNTS_AUTH_SECRET,
   baseURL: accountsUrl,
-  // Client apps are sent back here by the end-session redirect and may call accounts
+  // Domain apps are sent back here by the end-session redirect and may call accounts
   // from the browser; Better Auth rejects origins it doesn't know.
-  trustedOrigins: [webUrl],
+  trustedOrigins: [hrUrl, financeUrl, recruitmentUrl, attendanceUrl, examUrl],
   advanced: {
     // On localhost every app shares one cookie jar (cookies ignore ports), so each app
     // needs its own prefix or their session cookies overwrite each other.
