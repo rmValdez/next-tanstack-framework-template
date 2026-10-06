@@ -43,6 +43,19 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 
 Last commits: `97a9a1d` step 1, `8fede9f` step 2, `ef01c30` step 3, then step 4. Not pushed.
 
+## Stopping point (2026-10-07)
+
+The user stopped here and will come back later. State at the stop:
+
+- Roadmap steps 1–4 done, last commit `729c2e0`, working tree clean, nothing pushed.
+- No dev servers running. Docker containers (`next_tanstack_tpl_db`, `_rabbitmq`, `_mailpit`) and
+  their volumes keep the data: all `<app>_db` databases migrated, HR seeded, accounts seeded with
+  10 OAuth clients.
+- To bring everything back: `docker compose up -d`, then `pnpm dev` (12 services, ports
+  5010–5021), sign in on any app with `admin@example.com` / `password123`.
+- **First thing on return:** ask the user whether to start roadmap step 5 (domain events, which adds
+  the first real features) or something else. Do not start it unprompted.
+
 ## Resume here
 
 Follow [docs/roadmap.md](docs/roadmap.md). Steps 1–4 are done: every app in the agreed list runs
