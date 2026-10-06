@@ -35,7 +35,7 @@ and why.
 | Package manager  | Bun                                   | pnpm                                   | Matches the monolith template        |
 | Lint / format    | Biome                                 | ESLint + Prettier                      | Matches the monolith template        |
 | Forms            | TanStack Form                         | React state (ported forms)             | Fewer dependencies for a starter     |
-| Env loading      | `bun --env-file`                      | `@next/env`, `tsx --env-file`          | Follows the toolchain                |
+| Env loading      | `bun --env-file`                      | `dotenv-cli`, `tsx --env-file`         | Follows the toolchain                |
 
 ### Scope
 

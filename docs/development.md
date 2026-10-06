@@ -2,8 +2,8 @@
 
 Running, changing, and debugging the template locally.
 
-> **Status:** planned. Commands are final; they work once phases 2–6 of the
-> [implementation plan](implementation-plan.md) are built.
+> **Status:** commands work for what is built so far (phases 1–4: `pnpm db:setup`, `accounts` dev
+> server). `worker` and `web` arrive in phases 5–6 of the [implementation plan](implementation-plan.md).
 
 ---
 

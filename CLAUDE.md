@@ -27,13 +27,16 @@ Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/
 
 ## Status (2026-10-06)
 
-- Done: phases 1–3 (root config, `packages/core`, `packages/ui`, `packages/accounts-db`,
-  `packages/web-db` with migrations and seed), plus all documentation.
-- Not started: phases 4–8. `apps/*` are empty.
+- Done: phases 1–4 (root config, `packages/*`, `apps/accounts`), plus all documentation.
+  `accounts` is verified with curl through the full OIDC code flow; its email flows wait for
+  the worker.
+- Not started: phases 5–8 (`apps/worker`, `apps/web`, verification, final docs).
 - Git: remote `origin` = github.com/rmValdez/next-tanstack-framework-template, branch `main`.
   No Claude co-author trailers in commits.
 - Ports: infra 5000–5004, apps 5010 (web), 5011 (accounts), 5012 (worker).
-- **Next step:** phase 4 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/accounts`).
+- **Next step:** phase 5 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/worker`):
+  consume `email` with `assertEmailQueues()` from `@workspace/core/queue/topology`, render the two
+  templates, send via nodemailer to Mailpit, then re-check phase 4's sign-up/reset emails.
 
 ## Documentation map
 
@@ -81,6 +84,8 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
 - Root script is `pnpm db:setup` (`pnpm setup` is a pnpm built-in). Pin `prisma@^7` (`latest` is 8 RC).
 - On localhost both apps share a cookie jar, so set distinct `advanced.cookiePrefix` (`accounts`, `web`).
 - Give `web`'s OAuth state cookie `maxAge: 600` (philgeps' `state_mismatch` fix).
+- Issuer is `${NEXT_PUBLIC_ACCOUNTS_URL}/api/auth`; ID tokens are EdDSA (Ed25519). A failed client
+  auth at `/oauth2/token` consumes the authorization code.
 
 ## Conventions
 
@@ -88,7 +93,8 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
   secrets in `config.server.ts`, never imported by client components.
 - Each service owns its database; services communicate only over HTTP/OIDC or the queue.
 - Workspace packages export TypeScript source; Next apps use `transpilePackages`.
-- One root `.env`; Next apps load it with `loadEnvConfig` from `@next/env` in `next.config.ts`.
+- One root `.env`; Next apps load it with `dotenv -e ../../.env --` in their package scripts
+  (`@next/env` in `next.config.ts` does not work: Next resets `process.env`).
 - Shell is Windows (PowerShell primary, Git Bash available).
 
 ## Working with the user

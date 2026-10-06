@@ -3,7 +3,8 @@
 Build order for the template, phase by phase. Each phase ends with a check that must pass before
 the next one starts.
 
-> **Status:** phases 1–3 done (2026-10-06). Phases 4–8 not started.
+> **Status:** phases 1–4 done (2026-10-06); phase 4's email flows are re-checked once the worker
+> exists. Phases 5–8 not started.
 
 ---
 
@@ -113,6 +114,25 @@ third-party client would otherwise hit a 404 (philgeps left this unbuilt).
 
 **Check:** on :5011, sign-up → verification email → verified → sign-in → `/account` works;
 forgot/reset works; `/.well-known/openid-configuration` returns the discovery document.
+
+Verified 2026-10-06 (dev server + curl):
+
+- ✅ `/api/health` ok; discovery complete (S256 PKCE, `client_secret_basic`); `/api/auth/jwks` serves
+  an Ed25519 key; protected pages redirect to `/login?redirectTo=…`.
+- ✅ Authorize as `web` → `/login` with signed query → sign-in resumes → `web` callback with `code`
+  and `state` → token exchange → `userinfo` returns the admin user. This also proves the phase 3
+  schema and the seeded hashed client secret.
+- ✅ Tampered query → `invalid_signature`; wrong client secret → `invalid_client`; replayed code →
+  `invalid_grant`.
+- ⏳ Sign-up and reset **emails** can only be checked once the worker (phase 5) consumes the queue;
+  re-run this check then.
+
+Notes:
+
+- Env loading: `dotenv -e ../../.env --` in the package scripts, not `@next/env` in
+  `next.config.ts` (Next resets `process.env` to its startup snapshot and drops those values).
+- A failed client authentication at the token endpoint consumes the code; `web` must start a new
+  sign-in after any token error.
 
 ---
 

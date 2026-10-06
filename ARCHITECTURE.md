@@ -7,8 +7,8 @@ same pattern as the philgeps workspace, built on Next.js instead of TanStack Sta
 
 It is the multi-service counterpart of `next-betterAuth-monolith-template`, which stays unchanged.
 
-> **Status:** design complete, implementation in progress. Root config files exist; apps and
-> packages are not built yet. Detailed docs live in [`docs/`](docs/); see the [README](README.md#documentation).
+> **Status:** phases 1–4 built (root, shared packages, databases, `accounts`); `worker` and `web` next. Progress per phase: [implementation plan](docs/implementation-plan.md).
+> Detailed docs live in [`docs/`](docs/); see the [README](README.md#documentation).
 
 ---
 
@@ -140,7 +140,7 @@ sequenceDiagram
     MQ->>W: deliver (prefetch 5)
     W->>W: Render template (values HTML-escaped)
     W->>S: sendMail
-    W->>MQ: ack (nack + requeue on failure)
+    W->>MQ: ack (nack on failure; after 5 deliveries RabbitMQ moves it to email.dlq)
 ```
 
 - Jobs are typed in `@workspace/core/queue/types`, so producer and consumer agree on payloads.
@@ -209,7 +209,7 @@ New app features add their tables to `web_db`, keyed to the shadow `user.id`.
 
 ## 7. Configuration
 
-One `.env` at the repo root. Next apps load it in `next.config.ts` via `@next/env`; Prisma configs
+One `.env` at the repo root. Next apps load it through `dotenv -e ../../.env` in their scripts; Prisma configs
 and the worker load it explicitly. Every service validates its own variables with Zod at startup and
 refuses to boot when a secret is missing or too short.
 

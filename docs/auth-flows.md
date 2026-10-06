@@ -3,8 +3,10 @@
 How identity moves between services. Read [ARCHITECTURE.md](../ARCHITECTURE.md) first for the
 service map.
 
-> **Status:** planned. Endpoint paths and behaviors below were checked against
-> `better-auth@1.7.7` and `@better-auth/oauth-provider@1.7.7`.
+> **Status:** the `accounts` side is built and verified (2026-10-06): authorize → `/login` with signed
+> query → sign-in resumes → code → token exchange (PKCE, `client_secret_basic`) → userinfo; tampered
+> query → `invalid_signature`. The `web` side is phase 6. Issuer is `http://localhost:5011/api/auth`;
+> ID tokens are signed EdDSA (Ed25519).
 
 ---
 

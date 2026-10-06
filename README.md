@@ -12,7 +12,7 @@ sharing one identity provider, built with **Better Auth**, **Prisma 7**, **Postg
 It follows the architecture of the philgeps workspace on Next.js, and is the multi-service
 counterpart of `next-betterAuth-monolith-template`.
 
-> **Status:** design complete, implementation in progress. See the
+> **Status:** phases 1–4 built (root, shared packages, databases, `accounts`); `worker` and `web` next. See the
 > [implementation plan](docs/implementation-plan.md).
 
 ---

@@ -10,7 +10,7 @@ There is one `.env` file, at the repo root. Copy it from `.env.example`.
 
 | Consumer         | How it loads the root `.env`                                      |
 | :--------------- | :---------------------------------------------------------------- |
-| Next apps        | `loadEnvConfig(<repo root>)` from `@next/env` at the top of `next.config.ts` |
+| Next apps        | `dotenv -e ../../.env --` in front of `next dev/build/start` (dotenv-cli). Not `@next/env` in `next.config.ts`: Next resets `process.env` to its startup snapshot when it loads the app folder's env files, dropping those values |
 | Prisma CLI       | `dotenv` in each package's `prisma.config.ts`                     |
 | Seed scripts     | `tsx --env-file=../../.env`                                       |
 | Worker           | `tsx --env-file=../../.env`                                       |

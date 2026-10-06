@@ -1,3 +1,6 @@
+# Fixed project name: keeps container and volume names the same whatever the folder is called.
+name: next-tanstack-framework-template
+
 services:
   db:
     image: postgres:16-alpine
