@@ -32,6 +32,31 @@ const env = parseEnv(
     EXAM_OAUTH_CLIENT_SECRET: z
       .string()
       .min(32, "EXAM_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_CRM_URL: z.string().url(),
+    CRM_OAUTH_CLIENT_ID: z.string().min(1),
+    CRM_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "CRM_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_OPERATIONS_URL: z.string().url(),
+    OPERATIONS_OAUTH_CLIENT_ID: z.string().min(1),
+    OPERATIONS_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "OPERATIONS_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_ANALYTICS_URL: z.string().url(),
+    ANALYTICS_OAUTH_CLIENT_ID: z.string().min(1),
+    ANALYTICS_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "ANALYTICS_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_COLLABORATION_URL: z.string().url(),
+    COLLABORATION_OAUTH_CLIENT_ID: z.string().min(1),
+    COLLABORATION_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "COLLABORATION_OAUTH_CLIENT_SECRET must be at least 32 characters."),
+    NEXT_PUBLIC_WORKSPACE_URL: z.string().url(),
+    WORKSPACE_OAUTH_CLIENT_ID: z.string().min(1),
+    WORKSPACE_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "WORKSPACE_OAUTH_CLIENT_SECRET must be at least 32 characters."),
   }),
   process.env,
   "seed"
@@ -75,6 +100,41 @@ const CLIENTS = [
     clientId: env.EXAM_OAUTH_CLIENT_ID,
     clientSecret: env.EXAM_OAUTH_CLIENT_SECRET,
     url: env.NEXT_PUBLIC_EXAM_URL,
+  },
+  {
+    app: "crm",
+    name: "CRM",
+    clientId: env.CRM_OAUTH_CLIENT_ID,
+    clientSecret: env.CRM_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_CRM_URL,
+  },
+  {
+    app: "operations",
+    name: "Operations",
+    clientId: env.OPERATIONS_OAUTH_CLIENT_ID,
+    clientSecret: env.OPERATIONS_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_OPERATIONS_URL,
+  },
+  {
+    app: "analytics",
+    name: "Analytics",
+    clientId: env.ANALYTICS_OAUTH_CLIENT_ID,
+    clientSecret: env.ANALYTICS_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_ANALYTICS_URL,
+  },
+  {
+    app: "collaboration",
+    name: "Collaboration",
+    clientId: env.COLLABORATION_OAUTH_CLIENT_ID,
+    clientSecret: env.COLLABORATION_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_COLLABORATION_URL,
+  },
+  {
+    app: "workspace",
+    name: "Workspace",
+    clientId: env.WORKSPACE_OAUTH_CLIENT_ID,
+    clientSecret: env.WORKSPACE_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_WORKSPACE_URL,
   },
 ];
 

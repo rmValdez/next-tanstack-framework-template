@@ -205,11 +205,11 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
   | `recruitment`   | Next.js            | Candidates, hiring                                            | Scaffolded                            |
   | `attendance`    | Next.js            | Attendance, schedules, time tracking                          | Scaffolded                            |
   | `exam`          | **TanStack Start** | Exams, timed / live assessment                                | Scaffolded on TanStack Start (step 3) |
-  | `crm`           | Next.js            | Customers, contacts, leads                                    | Planned (step 4)                      |
-  | `operations`    | Next.js            | Operational workflows                                         | Planned (step 4)                      |
-  | `analytics`     | Next.js            | Reporting, dashboards; owns aggregated data only              | Planned (step 4)                      |
-  | `collaboration` | **TanStack Start** | Realtime collaboration, communication                         | Planned (step 4)                      |
-  | `workspace`     | **TanStack Start** | Projects, tasks, documents                                    | Planned (step 4)                      |
+  | `crm`           | Next.js            | Customers, contacts, leads                                    | Scaffolded (step 4)                   |
+  | `operations`    | Next.js            | Operational workflows                                         | Scaffolded (step 4)                   |
+  | `analytics`     | Next.js            | Reporting, dashboards; owns aggregated data only              | Scaffolded (step 4)                   |
+  | `collaboration` | **TanStack Start** | Realtime collaboration, communication                         | Scaffolded (step 4)                   |
+  | `workspace`     | **TanStack Start** | Projects, tasks, documents                                    | Scaffolded (step 4)                   |
   | `worker`        | Node.js (Express)  | Background jobs, email, scheduled work                        | Built (email)                         |
 
 - **Rules:** separate apps by business domain; independent apps first, microservices only when

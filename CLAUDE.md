@@ -14,8 +14,9 @@ background `worker`. Final architecture agreed with the user on 2026-10-06 (deci
   (OIDC). Owns `accounts_db`. No business data.
 - Domain apps, each with its **own database** `<app>_db` (D17), signing in through accounts:
   `hr` (Next.js, :5010, also company administration), `finance` (Next.js, :5013), `recruitment`
-  (Next.js, :5014), `attendance` (Next.js, :5015), `exam` (**TanStack Start**, :5016); planned:
-  `crm`, `operations`, `analytics` (Next.js), `collaboration`, `workspace` (**TanStack Start**).
+  (Next.js, :5014), `attendance` (Next.js, :5015), `exam` (**TanStack Start**, :5016); `crm` (:5017),
+  `operations` (:5018), `analytics` (:5019) on Next.js, `collaboration` (:5020), `workspace` (:5021)
+  on **TanStack Start**.
 - `worker` (Express, :5012): background jobs; sends email from RabbitMQ via SMTP (Mailpit in dev).
 - Cross-domain: never SQL. The owner's `/api/v1` with an accounts-issued app token (D18), later
   domain events (D16). Global sign-out is required (D19).
@@ -25,29 +26,30 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 
 ## Where we are (2026-10-07)
 
-| Area                                                           | State                                                                                                               |
-| :------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ |
-| `accounts`, `worker`                                           | Built and verified                                                                                                  |
-| `hr`                                                           | Built: reference domain app (employees/departments, TanStack Table v9 + Form + Query, session API)                  |
-| `finance`                                                      | Built: payroll; reads employees through HR's `/api/v1` with an accounts-issued app token                            |
-| `recruitment`, `attendance`                                    | Scaffolded from hr (Next.js): landing, sign-in, dashboard, sign-out                                                 |
-| `exam`                                                         | Scaffolded on **TanStack Start** (reference for collaboration/workspace)                                            |
-| `crm`, `operations`, `analytics`, `collaboration`, `workspace` | Not created                                                                                                         |
-| Data                                                           | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                          |
-| App-to-app tokens (D18)                                        | Built: finance → HR via `@workspace/core/apis`                                                                      |
-| Global sign-out (D19)                                          | Built: OIDC back-channel logout, `@workspace/core/oidc`, one Sign out button                                        |
-| Events                                                         | Decided, not built (roadmap step 5)                                                                                 |
-| Checks                                                         | `pnpm dev` runs every app together, landing pages and SSO verified per app; type-check 21/21, lint 7/7, build 12/12 |
-| Docs                                                           | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                         |
+| Area                                                                          | State                                                                                                                                    |
+| :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| `accounts`, `worker`                                                          | Built and verified                                                                                                                       |
+| `hr`                                                                          | Built: reference domain app (employees/departments, TanStack Table v9 + Form + Query, session API)                                       |
+| `finance`                                                                     | Built: payroll; reads employees through HR's `/api/v1` with an accounts-issued app token                                                 |
+| `recruitment`, `attendance`                                                   | Scaffolded from hr (Next.js): landing, sign-in, dashboard, sign-out                                                                      |
+| `exam`                                                                        | Scaffolded on **TanStack Start** (reference for collaboration/workspace)                                                                 |
+| `crm`, `operations`, `analytics` (Next), `collaboration`, `workspace` (Start) | Scaffolded (step 4): sign-in, dashboard, global sign-out                                                                                 |
+| Data                                                                          | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                                               |
+| App-to-app tokens (D18)                                                       | Built: finance → HR via `@workspace/core/apis`                                                                                           |
+| Global sign-out (D19)                                                         | Built: OIDC back-channel logout, `@workspace/core/oidc`, one Sign out button                                                             |
+| Events                                                                        | Decided, not built (roadmap step 5)                                                                                                      |
+| Checks                                                                        | One `pnpm dev` runs all 12 services; SSO + global sign-out verified across all 10 domain apps; type-check 36/36, lint 12/12, build 22/22 |
+| Docs                                                                          | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                                              |
 
-Last commits: `97a9a1d` step 1, `8fede9f` step 2, then step 3. Not pushed.
+Last commits: `97a9a1d` step 1, `8fede9f` step 2, `ef01c30` step 3, then step 4. Not pushed.
 
 ## Resume here
 
-Follow [docs/roadmap.md](docs/roadmap.md) in order. Steps 1 (own databases + app-to-app tokens),
-2 (global sign-out) and 3 (exam on TanStack Start) are done. **Next: step 4**: scaffold `crm`,
-`operations`, `analytics` from `apps/hr` and `collaboration`, `workspace` from `apps/exam`
-(recipes in docs/adding-a-service.md; ports 5017–5021). Then step 5 events. Feature work for recruitment/attendance etc. is paused by
+Follow [docs/roadmap.md](docs/roadmap.md). Steps 1–4 are done: every app in the agreed list runs
+(own database, SSO, app tokens, global sign-out; exam/collaboration/workspace on TanStack Start).
+**Next: step 5, domain events (D16).** It is the first step that adds domain features
+(recruitment candidates → HR employees), which the user paused; confirm with the user before
+starting it. Feature work for recruitment/attendance etc. is paused by
 the user until those steps are done ("the idea is they are working and running").
 
 Standing rule per step: one `pnpm dev` starts everything, each UI app reaches its landing page with

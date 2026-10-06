@@ -9,30 +9,31 @@ through their APIs or events.
 > **State (2026-10-07):** this page describes the agreed target (decisions D17–D20). Built today:
 > `accounts`, `worker`, `hr`, `finance`, each domain on its own database, Finance reading HR
 > through HR's API with an app token, global sign-out; `recruitment`, `attendance` scaffolded on
-> Next.js and `exam` on TanStack Start (sign-in only). Next: crm, operations, analytics,
-> collaboration, workspace ([roadmap](docs/roadmap.md) step 4). Progress:
+> Next.js and `exam` on TanStack Start (sign-in only). `crm`, `operations`, `analytics`
+> (Next.js) and `collaboration`, `workspace` (Start) scaffolded too. Next: events
+> ([roadmap](docs/roadmap.md) step 5). Progress:
 > [build log](docs/build-log.md).
 
 ---
 
 ## 1. Applications
 
-| App             | Framework             | Port  | Owns                                                      | State                        |
-| :-------------- | :-------------------- | :---- | :-------------------------------------------------------- | :--------------------------- |
-| `accounts`      | Next.js + Better Auth | 5011  | Users, passwords, sessions, OIDC clients and tokens, JWKS | Built                        |
-| `hr`            | Next.js               | 5010  | Employees, departments, positions, company administration | Built (reference app)        |
-| `finance`       | Next.js               | 5013  | Payroll, accounting                                       | Built (payroll)              |
-| `recruitment`   | Next.js               | 5014  | Candidates, hiring                                        | Scaffolded                   |
-| `attendance`    | Next.js               | 5015  | Attendance, schedules, time tracking                      | Scaffolded                   |
-| `exam`          | TanStack Start        | 5016  | Exams, attempts, results                                  | Scaffolded (Start reference) |
-| `crm`           | Next.js               | 5017* | Customers, contacts, leads                                | Planned                      |
-| `operations`    | Next.js               | 5018* | Operational workflows                                     | Planned                      |
-| `analytics`     | Next.js               | 5019* | Aggregated reporting data only                            | Planned                      |
-| `collaboration` | TanStack Start        | 5020* | Communication, realtime collaboration                     | Planned                      |
-| `workspace`     | TanStack Start        | 5021* | Projects, tasks, documents                                | Planned                      |
-| `worker`        | Express + amqplib     | 5012  | Nothing persistent; sends email jobs                      | Built                        |
+| App             | Framework             | Port | Owns                                                      | State                        |
+| :-------------- | :-------------------- | :--- | :-------------------------------------------------------- | :--------------------------- |
+| `accounts`      | Next.js + Better Auth | 5011 | Users, passwords, sessions, OIDC clients and tokens, JWKS | Built                        |
+| `hr`            | Next.js               | 5010 | Employees, departments, positions, company administration | Built (reference app)        |
+| `finance`       | Next.js               | 5013 | Payroll, accounting                                       | Built (payroll)              |
+| `recruitment`   | Next.js               | 5014 | Candidates, hiring                                        | Scaffolded                   |
+| `attendance`    | Next.js               | 5015 | Attendance, schedules, time tracking                      | Scaffolded                   |
+| `exam`          | TanStack Start        | 5016 | Exams, attempts, results                                  | Scaffolded (Start reference) |
+| `crm`           | Next.js               | 5017 | Customers, contacts, leads                                | Scaffolded                   |
+| `operations`    | Next.js               | 5018 | Operational workflows                                     | Scaffolded                   |
+| `analytics`     | Next.js               | 5019 | Aggregated reporting data only                            | Scaffolded                   |
+| `collaboration` | TanStack Start        | 5020 | Communication, realtime collaboration                     | Scaffolded                   |
+| `workspace`     | TanStack Start        | 5021 | Projects, tasks, documents                                | Scaffolded                   |
+| `worker`        | Express + amqplib     | 5012 | Nothing persistent; sends email jobs                      | Built                        |
 
-\* proposed ports. Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP
+Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP
 5003 (UI 5004). Framework reasons: [docs/company-stack.md](docs/company-stack.md).
 
 ---

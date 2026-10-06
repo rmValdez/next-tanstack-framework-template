@@ -9,6 +9,11 @@ import {
   recruitmentUrl,
   attendanceUrl,
   examUrl,
+  crmUrl,
+  operationsUrl,
+  analyticsUrl,
+  collaborationUrl,
+  workspaceUrl,
 } from "@workspace/core/urls";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -28,7 +33,18 @@ export const auth = betterAuth({
   baseURL: accountsUrl,
   // Domain apps are sent back here by the end-session redirect and may call accounts
   // from the browser; Better Auth rejects origins it doesn't know.
-  trustedOrigins: [hrUrl, financeUrl, recruitmentUrl, attendanceUrl, examUrl],
+  trustedOrigins: [
+    hrUrl,
+    financeUrl,
+    recruitmentUrl,
+    attendanceUrl,
+    examUrl,
+    crmUrl,
+    operationsUrl,
+    analyticsUrl,
+    collaborationUrl,
+    workspaceUrl,
+  ],
   advanced: {
     // On localhost every app shares one cookie jar (cookies ignore ports), so each app
     // needs its own prefix or their session cookies overwrite each other.

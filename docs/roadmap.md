@@ -5,7 +5,7 @@ closes it. What has been built so far, with its test results and gotchas, is in
 [build-log.md](build-log.md). Why each choice was made: [decisions.md](decisions.md).
 
 **Order (agreed 2026-10-06):** ~~1 database separation + app-to-app auth~~ ✅ → ~~2 global sign-out~~ ✅ →
-~~3 exam on TanStack Start~~ ✅ → 4 new apps → 5 events.
+~~3 exam on TanStack Start~~ ✅ → ~~4 new apps~~ ✅ → 5 events.
 
 **Standing rule for every step:** `pnpm dev` starts every app and each UI app reaches its landing
 page without errors; `pnpm type-check`, `pnpm lint` and `pnpm build` pass; commit at the end of the
@@ -33,22 +33,11 @@ Done 2026-10-07. [Build log](build-log.md), step 3. `apps/exam` is now the templ
 
 ---
 
-## Step 4: new apps
+## Step 4: new apps ✅
 
-Scaffold, sign-in only, no features, each with `<app>_db`, role, OAuth client, port:
-
-| App             | Framework      | Copy from                | Port (proposed) |
-| :-------------- | :------------- | :----------------------- | :-------------- |
-| `crm`           | Next.js        | `apps/hr` minus features | 5017            |
-| `operations`    | Next.js        | `apps/hr` minus features | 5018            |
-| `analytics`     | Next.js        | `apps/hr` minus features | 5019            |
-| `collaboration` | TanStack Start | `apps/exam`              | 5020            |
-| `workspace`     | TanStack Start | `apps/exam`              | 5021            |
-
-The scaffolding recipe is in [adding-a-service.md](adding-a-service.md).
-
-**Done when:** all apps come up under one `pnpm dev`, landing pages load, sign-in and global
-sign-out work for each.
+Done 2026-10-07: `crm` (5017), `operations` (5018), `analytics` (5019) on Next.js from
+`apps/recruitment`, `collaboration` (5020), `workspace` (5021) on TanStack Start from `apps/exam`.
+[Build log](build-log.md), step 4.
 
 ---
 

@@ -35,7 +35,8 @@ different framework, chosen per app for a reason written down here.
 
 State on 2026-10-07: `accounts`, `hr`, `finance`, `worker` built; `recruitment`, `attendance` and
 `exam` scaffolded (`exam` on TanStack Start since step 3); `crm`,
-`operations`, `analytics`, `collaboration`, `workspace` planned (step 4).
+`operations`, `analytics` (Next.js) and `collaboration`, `workspace` (TanStack Start) scaffolded
+(step 4).
 
 ---
 

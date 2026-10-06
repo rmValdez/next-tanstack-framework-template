@@ -77,16 +77,16 @@ use: accounts' `accessTokenExpiresIn` / `refreshTokenExpiresIn`. Decide before w
 
 ## Ports
 
-| What                                                           | Port                         |     | What            | Port                 |
-| :------------------------------------------------------------- | :--------------------------- | :-- | :-------------- | :------------------- |
-| `hr`                                                           | 5010                         |     | PostgreSQL      | 5000                 |
-| `accounts`                                                     | 5011                         |     | RabbitMQ (AMQP) | 5001                 |
-| `worker` health                                                | 5012                         |     | RabbitMQ UI     | 5002 (guest / guest) |
-| `finance`                                                      | 5013                         |     | Mailpit SMTP    | 5003                 |
-| `recruitment`                                                  | 5014                         |     | Mailpit inbox   | 5004                 |
-| `attendance`                                                   | 5015                         |     |                 |                      |
-| `exam`                                                         | 5016                         |     |                 |                      |
-| `crm`, `operations`, `analytics`, `collaboration`, `workspace` | 5017–5021 (proposed, step 4) |     |                 |                      |
+| What                                                                                    | Port |     | What            | Port                 |
+| :-------------------------------------------------------------------------------------- | :--- | :-- | :-------------- | :------------------- |
+| `hr`                                                                                    | 5010 |     | PostgreSQL      | 5000                 |
+| `accounts`                                                                              | 5011 |     | RabbitMQ (AMQP) | 5001                 |
+| `worker` health                                                                         | 5012 |     | RabbitMQ UI     | 5002 (guest / guest) |
+| `finance`                                                                               | 5013 |     | Mailpit SMTP    | 5003                 |
+| `recruitment`                                                                           | 5014 |     | Mailpit inbox   | 5004                 |
+| `attendance`                                                                            | 5015 |     |                 |                      |
+| `exam`                                                                                  | 5016 |     |                 |                      |
+| `crm` 5017, `operations` 5018, `analytics` 5019, `collaboration` 5020, `workspace` 5021 |      |     |                 |                      |
 
 Docker ports bind to `127.0.0.1` only, so the databases and broker are not reachable from the
 network.
