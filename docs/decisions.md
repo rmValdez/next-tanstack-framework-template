@@ -123,3 +123,26 @@ added at the bottom.
   coupled domains need cheap reads across each other, which D13 provides without shared writes.
 - **Consequences:** `apps/web` became `apps/hr`; `packages/web-db` became `packages/hr-db` on
   `company_db?schema=hr` with role `hr_app`; `web_db` is no longer created.
+
+### D16. Domain events: a worker process per domain, outbox and inbox
+
+- **Date:** 2026-10-06. **Status:** decided, not built (features paused; see CLAUDE.md).
+- **Chosen:** each domain app that consumes events gets `src/worker.ts`, run with `tsx` as its own
+  process next to the Next server and connected as that domain's role (`<app>_app`). Events go
+  through a topic exchange `domain.events` with versioned names (`recruitment.applicant.hired.v1`)
+  and Zod schemas in `@workspace/core/events`. Each consumer has its own quorum queue
+  (`hr.domain-events`) with a delivery limit and `<queue>.dlq`.
+  - **Publisher: transactional outbox.** The state change and an `outbox` row are written in one
+    transaction; the publisher's worker relays unsent rows (`FOR UPDATE SKIP LOCKED`), so a broker
+    outage delays an event instead of losing it.
+  - **Consumer: inbox.** The handler's writes and a `processed_events` row (event id) commit in
+    one transaction, so redeliveries are no-ops. Invalid or unprocessable events go straight to
+    the DLQ.
+  - `pnpm dev` starts workers through a `worker:dev` Turbo task.
+- **Alternatives:** consumer inside the Next server (instrumentation hook): no extra process, but
+  tied to web scaling, duplicate consumers on dev reloads, no serverless. One central worker for
+  all domains: would need every domain's role, breaking D13 ownership.
+- **Why:** keeps "only the owner writes its schema" true for asynchronous work too, and scales
+  consumers independently of web traffic.
+- **First use:** phase 8, recruitment "applicant hired" → HR creates the employee.
+

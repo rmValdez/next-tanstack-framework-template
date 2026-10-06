@@ -3,12 +3,11 @@
 Build order for the template, phase by phase. Each phase ends with a check that must pass before
 the next one starts.
 
-> **Status (2026-10-06):** phases 1–6 done. Phase 6 replaced the generic `web` client with `hr` on
-> `company_db` ([D15](decisions.md#d15-real-domain-apps-on-company_db-not-a-generic-example-app)).
-> `finance`, `recruitment`, `attendance` and `exam` are **scaffolded** from `hr`: app, `<app>-db`
-> package (Better Auth tables only), role, schema + `_public` schema, OAuth client, port. Sign-in,
-> dashboard and sign-out everywhere verified for each; `finance_app` is denied on `hr`, `hr_public`
-> and `exam`. Their domain features (phases 7–10), `realtime`, and phase 11 are not started.
+> **Status (2026-10-06):** phases 1–7 done (`hr` reference app, `finance` reading `hr_public`).
+> `recruitment`, `attendance` and `exam` are **scaffolded** from `hr` (sign-in, dashboard,
+> sign-out verified; no features). **Paused by decision:** no new domain features for now; the
+> next work is making sure everything runs together and the docs match (see "Resume here" in
+> [CLAUDE.md](../CLAUDE.md)). Events are designed ([D16](decisions.md#d16-domain-events-a-worker-process-per-domain-outbox-and-inbox)), not built.
 
 ---
 
@@ -245,6 +244,13 @@ Deferred to a design decision: **domain events between apps** (where consumers r
 proposal in the phase 7 summary; recruitment (phase 8) is the first workflow that needs one.
 
 ## Phase 8: `apps/recruitment`
+
+Paused. Event design is fixed in [D16](decisions.md#d16-domain-events-a-worker-process-per-domain-outbox-and-inbox):
+recruitment's hire writes the applicant change + an outbox row in one transaction;
+`apps/recruitment/src/worker.ts` relays it to `domain.events`; `apps/hr/src/worker.ts` consumes
+`recruitment.applicant.hired.v1` from `hr.domain-events` and creates the employee with an inbox row.
+Recruitment reads departments from a new `hr_public.department_directory_v1` (granted by HR's
+migration).
 
 Applicants, vacancies, pipeline. An "applicant hired" event makes HR create the employee (HR stays
 the only writer of `hr.employees`). Port 5014.

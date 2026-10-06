@@ -30,26 +30,58 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 - **Architecture follows** `C:\Users\My PC\Documents\Github\personal\government-philgeps-workspace\philgeps-workspace`
   (TanStack Start + Bun). Same IdP/client/worker pattern, rebuilt on Next.js. Read-only reference.
 
-## Status (2026-10-06)
+## Status and where we left off (2026-10-06)
 
-- Done: phases 1–6 (root config, `packages/*`, `apps/accounts`, `apps/worker`, `apps/hr`).
-  `apps/web` was replaced by `apps/hr` on `company_db` (D15). All verified with curl
-  (OIDC round-trip, emails into Mailpit, HR API, sign-out everywhere).
-- Scaffolded (copied from `hr`, sign-in verified, no domain features yet): `finance`,
-  `recruitment`, `attendance`, `exam`. The generator logic: copy `apps/hr` minus
-  `src/features` + employee routes, copy `packages/hr-db` with only the Better Auth models
-  re-tagged `@@schema("<app>")`, then add role/schema to `init.sql`, env vars, `core/urls.ts`,
-  accounts `trustedOrigins` and seed `CLIENTS`, `turbo.json`.
-- Not started: domain features of phases 7–10, `apps/realtime`, phase 11 (verification and
-  docs). README/ARCHITECTURE/auth-flows/configuration still describe `web`; rewrite them for the
-  domain apps (phase 11, or sooner).
+**Current direction (user, 2026-10-06): no new domain features for now. The goal is that every app
+is working and running.** Resume with the "Resume here" list below, not with phase 8 features.
+
+| Area | State |
+| :--- | :--- |
+| Phases 1–5 | Done: root tooling, `packages/*`, `apps/accounts`, `apps/worker` (emails into Mailpit). |
+| Phase 6 `apps/hr` | Done, reference app: `company_db?schema=hr`, employees/departments, TanStack Table/Form/Query, `hr_public.employee_directory_v1`. |
+| Phase 7 `apps/finance` | Done: payroll reading HR's view (grant via HR's migration). |
+| `recruitment`, `attendance`, `exam` | Scaffolded from `hr`: sign-in, dashboard, sign-out work; no domain features. |
+| `apps/realtime` | Not created (Socket.IO; needs the socket-auth design, phase 9). |
+| Domain events | Designed, not built: D16 (consumer = `src/worker.ts` per app, outbox + inbox). |
+| Verification | `pnpm type-check` 21/21, `pnpm lint` 7/7, `pnpm build` 12/12. Each app's SSO round-trip, guards and sign-out everywhere verified with curl (scripts were in the session scratchpad, not the repo). |
+| Docs | D15, D16, implementation plan, CLAUDE.md, development.md current. README, ARCHITECTURE, auth-flows, configuration, adding-a-service, deployment still describe `web` / `web_db`. |
+
+Last commits: `e4ccd80` finance (phase 7), `391fdae` domain apps on company_db. Not pushed.
+
+### Resume here
+
+1. Run everything together once: `docker compose up -d`, `pnpm dev` (accounts, worker, hr,
+   finance, recruitment, attendance, exam). Check each `/api/health` and one sign-in per app.
+   Not done yet as a single `pnpm dev`; each app was verified on its own.
+2. Fresh-clone check: new Docker volume (`docker compose down -v` destroys local data), then
+   `pnpm db:setup`. `init.sql` must create every role/schema; `db:deploy` must apply all
+   migrations (HR's grant migrations need the finance/recruitment roles to exist, and they do).
+3. Rewrite the docs that still describe `web` (list above) for the domain apps; make
+   `docs/shared-database/` the main data guide (phase 11 docs part).
+4. Then, when features resume: D16 events (phase 8 recruitment → HR), realtime (phase 9).
+
+### Local environment notes
+
+- The user edited `.env` (new secrets). After changing secrets: `pnpm db:seed` in
+  `packages/accounts-db` (client secrets), and if `ACCOUNTS_AUTH_SECRET` changed,
+  `DELETE FROM jwks` in accounts_db (dev only). Both were done on 2026-10-06.
+- `.env` has `ACCESS_TOKEN_EXPIRY` / `REFRESH_TOKEN_EXPIRY` added by the user; nothing reads
+  them yet. Ask what they should control before wiring them.
+- The running Postgres volume predates the new `init.sql`; roles and schemas were applied by
+  hand, so it matches. The old `web_db` database still exists there, unused.
+- `pnpm build` logs `Discovery fetch failed for "accounts"` when accounts isn't running: harmless
+  (apps read the discovery document at startup), the build still succeeds.
+
+### Facts
+
 - Git: remote `origin` = github.com/rmValdez/next-tanstack-framework-template, branch `main`.
   No Claude co-author trailers in commits.
 - Ports: infra 5000–5004; apps 5010 hr, 5011 accounts, 5012 worker, 5013 finance,
-  5014 recruitment, 5015 attendance, 5016 exam, 5017 realtime.
-- Phase 7 (finance payroll reading `hr_public`) done and verified. **Next step:** decide where
-  domain-event consumers run (proposal: a `src/worker.ts` per domain app, run with `tsx`, own DB
-  role), then phase 8 (`apps/recruitment`, "applicant hired" → HR).
+  5014 recruitment, 5015 attendance, 5016 exam, 5017 realtime (planned).
+- Scaffolding a new domain app = copy `apps/hr` minus `src/features` and employee routes, copy
+  `packages/hr-db` with only the Better Auth models re-tagged `@@schema("<app>")`, then add
+  role/schema to `init.sql`, env vars, `core/urls.ts`, accounts `trustedOrigins` and seed
+  `CLIENTS`, `turbo.json`.
 
 ## Documentation map
 

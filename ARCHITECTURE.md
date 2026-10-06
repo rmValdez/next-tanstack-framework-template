@@ -7,7 +7,7 @@ same pattern as the philgeps workspace, built on Next.js instead of TanStack Sta
 
 It is the multi-service counterpart of `next-betterAuth-monolith-template`, which stays unchanged.
 
-> **Status:** phases 1–5 built (root, shared packages, databases, `accounts`, `worker`); `web` next. Progress per phase: [implementation plan](docs/implementation-plan.md).
+> **Status:** phases 1–7 built; the generic `web` app was replaced by domain apps on `company_db` (`hr`, `finance`; `recruitment`, `attendance`, `exam` scaffolded). Sections below that mention `web` / `web_db` are being rewritten. Progress per phase: [implementation plan](docs/implementation-plan.md).
 > Detailed docs live in [`docs/`](docs/); see the [README](README.md#documentation).
 
 ---
