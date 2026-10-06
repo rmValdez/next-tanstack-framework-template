@@ -173,6 +173,20 @@ a second sign-in is one click; sign-out works; `web_db.user` holds the shadow ro
 
 ---
 
+## Later phases
+
+Not part of v1; listed so the [company stack](company-stack.md) items marked "not included yet"
+have a home.
+
+| Phase | Content |
+| :---- | :------ |
+| 9 | Second client app (e.g. `admin`) to prove [adding-a-service.md](adding-a-service.md) works unchanged |
+| 10 | TanStack Table + Form example in a client app |
+| 11 | TanStack Start example client signing in through `accounts` |
+| 12 | Real-time service (Socket.IO), after the design questions in [company-stack.md](company-stack.md#real-time-open-design-questions) are settled |
+
+---
+
 ## Estimated effort
 
 | Phase | Size   |

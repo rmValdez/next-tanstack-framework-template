@@ -1,5 +1,5 @@
 {
-  "name": "next-betterauth-multiservice-template",
+  "name": "next-tanstack-framework-template",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.34.5",

@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: next_betterauth_ms_db
+    container_name: next_tanstack_tpl_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -21,7 +21,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: next_betterauth_ms_rabbitmq
+    container_name: next_tanstack_tpl_rabbitmq
     ports:
       - "127.0.0.1:5001:5672"
       - "127.0.0.1:5002:15672"
@@ -35,7 +35,7 @@ services:
   # Catches every email the worker sends in development. Inbox: http://localhost:5004
   mailpit:
     image: axllent/mailpit:latest
-    container_name: next_betterauth_ms_mailpit
+    container_name: next_tanstack_tpl_mailpit
     ports:
       - "127.0.0.1:5003:1025"
       - "127.0.0.1:5004:8025"

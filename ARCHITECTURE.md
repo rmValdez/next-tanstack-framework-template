@@ -1,6 +1,6 @@
 # System Architecture & Implementation Plan
 
-`next-betterAuth-multiservice-template` is a multi-service auth starter: several **Next.js 15** apps
+`next-tanstack-framework-template` is a multi-service starter: several **Next.js 15** apps
 and a background **worker**, kept in one **pnpm + Turborepo** monorepo. A central `accounts` service
 owns identity; every other app signs users in through it with **OAuth 2.0 / OpenID Connect**, the
 same pattern as the philgeps workspace, built on Next.js instead of TanStack Start.
@@ -153,7 +153,7 @@ sequenceDiagram
 ## 5. Repository Layout
 
 ```
-next-betterAuth-multiservice-template/
+next-tanstack-framework-template/
 ├── apps/
 │   ├── accounts/            Next.js IdP
 │   │   └── src/
@@ -257,6 +257,7 @@ verification → docs. Files, tasks, and the check that closes each phase are in
 | Email templates   | Plain HTML, escaped            |
 | Worker runtime    | `tsx`                          |
 | Redis             | Not included in v1             |
+| Framework policy  | Next.js default; TanStack libraries; TanStack Start by exception ([company-stack.md](docs/company-stack.md)) |
 
 Reasons and rejected alternatives: [docs/decisions.md](docs/decisions.md). Differences from
 philgeps-workspace: [docs/philgeps-comparison.md](docs/philgeps-comparison.md).

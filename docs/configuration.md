@@ -61,7 +61,7 @@ rebuild, not just a restart.
 | `SMTP_HOST`   | `localhost`          | Mailpit in development.                       |
 | `SMTP_PORT`   | `5003`               | Port 465 switches on implicit TLS.            |
 | `SMTP_USER`, `SMTP_PASS` | empty     | Leave empty for Mailpit.                      |
-| `SMTP_FROM`   | `Next BetterAuth <no-reply@localhost>` | Sender for all mail.        |
+| `SMTP_FROM`   | `Next TanStack Template <no-reply@localhost>` | Sender for all mail.        |
 
 ---
 

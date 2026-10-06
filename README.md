@@ -1,7 +1,9 @@
-# next-betterAuth-multiservice-template
+# next-tanstack-framework-template
 
-A multi-service auth starter: **Next.js 15** apps that share one identity provider, built with
-**Better Auth**, **Prisma 7**, **PostgreSQL**, **RabbitMQ**, **pnpm**, and **Turborepo**.
+The company's full-stack starter: multi-service **Next.js 15** apps with the **TanStack** libraries,
+sharing one identity provider, built with **Better Auth**, **Prisma 7**, **PostgreSQL**, **RabbitMQ**,
+**pnpm**, and **Turborepo**. Which framework and libraries to use for which kind of app:
+[docs/company-stack.md](docs/company-stack.md).
 
 - `accounts` owns users and passwords and acts as an **OAuth 2.0 / OpenID Connect provider**.
 - `web` (and any app you add) signs users in through `accounts` and keeps its own database.
@@ -69,6 +71,7 @@ docs/            Documentation (below)
 | [docs/adding-a-service.md](docs/adding-a-service.md) | Adding a client app, worker, or non-Next client      |
 | [docs/deployment.md](docs/deployment.md)          | Production checklist and scaling                        |
 | [docs/implementation-plan.md](docs/implementation-plan.md) | Build phases and their checks                  |
+| [docs/company-stack.md](docs/company-stack.md)    | Framework policy: Next.js default, TanStack, when to use TanStack Start |
 | [docs/decisions.md](docs/decisions.md)            | Why each major choice was made                          |
 | [docs/shared-database/](docs/shared-database/README.md) | Variant: several domains in one Postgres database with schema ownership |
 | [docs/philgeps-comparison.md](docs/philgeps-comparison.md) | What matches and differs from philgeps-workspace |

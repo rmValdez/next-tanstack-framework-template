@@ -4,7 +4,8 @@ Context for Claude Code sessions in this repo. Read this first, then the docs it
 
 ## What this project is
 
-`next-betterAuth-multiservice-template`: a **multi-service** auth starter in one pnpm + Turborepo
+`next-tanstack-framework-template` (renamed from `next-betterAuth-multiservice-template` on
+2026-10-06): the company's **multi-service** full-stack starter in one pnpm + Turborepo
 monorepo. Three separately running services:
 
 - `apps/accounts` (Next.js 15, :5011): identity provider. Better Auth + `jwt` + `oauthProvider`.
@@ -29,7 +30,7 @@ Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/
 - Done: phases 1–3 (root config, `packages/core`, `packages/ui`, `packages/accounts-db`,
   `packages/web-db` with migrations and seed), plus all documentation.
 - Not started: phases 4–8. `apps/*` are empty.
-- Git: remote `origin` = github.com/rmValdez/next-betterAuth-multiservice-template, branch `main`.
+- Git: remote `origin` = github.com/rmValdez/next-tanstack-framework-template, branch `main`.
   No Claude co-author trailers in commits.
 - Ports: infra 5000–5004, apps 5010 (web), 5011 (accounts), 5012 (worker).
 - **Next step:** phase 4 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/accounts`).
@@ -46,7 +47,8 @@ Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/
 | [docs/development.md](docs/development.md) | Scripts, changes, debugging |
 | [docs/adding-a-service.md](docs/adding-a-service.md) | Adding client apps / workers |
 | [docs/deployment.md](docs/deployment.md) | Production checklist |
-| [docs/decisions.md](docs/decisions.md) | Decision log (D1–D13) |
+| [docs/company-stack.md](docs/company-stack.md) | Framework policy: Next.js default, TanStack libs, Start by exception |
+| [docs/decisions.md](docs/decisions.md) | Decision log (D1–D14) |
 | [docs/shared-database/](docs/shared-database/README.md) | Variant: shared Postgres, schema per domain (spike-verified) |
 | [docs/philgeps-comparison.md](docs/philgeps-comparison.md) | vs philgeps-workspace |
 | [docs/monolith-comparison.md](docs/monolith-comparison.md) | vs monolith template, file-by-file copy map |
@@ -55,7 +57,7 @@ When code is built, update the docs to match and remove their "planned" status b
 
 ## Fixed decisions (don't re-litigate)
 
-pnpm · Turborepo · Next.js 15.5 (not 16) · Prisma 7.x (not 8 RC) · Better Auth 1.7.x +
+pnpm · Turborepo · Next.js 15.5 (not 16) as default framework, TanStack libraries allowed, TanStack Start only by documented exception (D14) · Prisma 7.x (not 8 RC) · Better Auth 1.7.x +
 `@better-auth/oauth-provider` same version · Zod · Tailwind 3 · ESLint + Prettier · RabbitMQ
 (amqplib 2.x, ships its own types) · nodemailer · plain escaped HTML email templates (not React Email) · worker on `tsx` ·
 no Redis in v1 · OAuth client secrets hashed (plugin default) · email verification by link (not OTP).

@@ -90,3 +90,14 @@ added at the bottom.
 - **Verified:** spike on Prisma 7.10.0 / Postgres 16. Required fixes: `CREATE ON DATABASE` per role,
   per-domain shadow database with `?schema=`. See
   [shared-database/spike-results.md](shared-database/spike-results.md).
+
+### D14. Next.js default, TanStack libraries, TanStack Start by exception
+
+- **Chosen:** Next.js is the default framework. TanStack libraries (Query, Table, Form) are approved
+  in every app. TanStack Start is allowed for an app with a documented technical reason. The repo
+  was renamed `next-tanstack-framework-template` to say this.
+- **Alternative:** TanStack Start as the default (philgeps), or Next.js only.
+- **Why:** one default avoids a framework debate per project; TanStack libraries run inside Next.js,
+  so they don't require a second framework. Because sign-in, data and jobs are protocol boundaries
+  (OIDC, database, queue), a Start app plugs into the same `accounts` without changes. Details:
+  [company-stack.md](company-stack.md).
