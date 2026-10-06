@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+coverage
+dist
+pnpm-lock.yaml
+package-lock.json
+*.tsbuildinfo
+.turbo
+**/prisma/generated

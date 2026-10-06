@@ -1,0 +1,25 @@
+{
+  "name": "@workspace/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./env": "./src/env.ts",
+    "./urls": "./src/urls.ts",
+    "./redirect": "./src/redirect.ts",
+    "./queue/types": "./src/queue/types.ts",
+    "./queue/topology": "./src/queue/topology.ts",
+    "./queue/producer": "./src/queue/producer.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "amqplib": "^2.2.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.19",
+    "typescript": "^5.9.3"
+  }
+}

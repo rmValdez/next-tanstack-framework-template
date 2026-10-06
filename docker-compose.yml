@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: next_betterauth_ms_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:5000:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Creates one database per service (accounts_db, web_db) on first start.
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: next_betterauth_ms_rabbitmq
+    ports:
+      - "127.0.0.1:5001:5672"
+      - "127.0.0.1:5002:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  # Catches every email the worker sends in development. Inbox: http://localhost:5004
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: next_betterauth_ms_mailpit
+    ports:
+      - "127.0.0.1:5003:1025"
+      - "127.0.0.1:5004:8025"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  rabbitmq_data:
