@@ -53,8 +53,15 @@ The user stopped here and will come back later. State at the stop:
   10 OAuth clients.
 - To bring everything back: `docker compose up -d`, then `pnpm dev` (12 services, ports
   5010–5021), sign in on any app with `admin@example.com` / `password123`.
-- **First thing on return:** ask the user whether to start roadmap step 5 (domain events, which adds
-  the first real features) or something else. Do not start it unprompted.
+- **First thing on return:** ask the user which of these to do; do not start any unprompted:
+  1. **Fresh-setup test** (recommended first): `docker compose down -v` (wipes local test data),
+     `docker compose up -d`, `pnpm db:setup`, `pnpm dev`, then the platform check (all apps healthy,
+     SSO into each, global sign-out). Never run since the switch to per-app databases; the
+     current volume was migrated by hand.
+  2. Push the commits to GitHub (`origin/main`).
+  3. Roadmap step 5: domain events (D16), the first real features.
+  4. Wire `ACCESS_TOKEN_EXPIRY` / `REFRESH_TOKEN_EXPIRY` from `.env` (ask what they control).
+- Not designed yet: roles/permissions per app, realtime, Dockerfiles/CI.
 
 ## Resume here
 
