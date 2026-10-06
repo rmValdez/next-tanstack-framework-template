@@ -1,0 +1,1 @@
+# next-betterAuth-multiservice-template
