@@ -13,7 +13,13 @@
     "WEB_AUTH_SECRET",
     "WEB_OAUTH_CLIENT_ID",
     "WEB_OAUTH_CLIENT_SECRET",
-    "RABBITMQ_URL"
+    "RABBITMQ_URL",
+    "WORKER_PORT",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASS",
+    "SMTP_FROM"
   ],
   "tasks": {
     "db:generate": { "cache": false },

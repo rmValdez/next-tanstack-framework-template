@@ -3,8 +3,7 @@
 Build order for the template, phase by phase. Each phase ends with a check that must pass before
 the next one starts.
 
-> **Status:** phases 1–4 done (2026-10-06); phase 4's email flows are re-checked once the worker
-> exists. Phases 5–8 not started.
+> **Status:** phases 1–5 done (2026-10-06). Phases 6–8 not started.
 
 ---
 
@@ -124,8 +123,8 @@ Verified 2026-10-06 (dev server + curl):
   schema and the seeded hashed client secret.
 - ✅ Tampered query → `invalid_signature`; wrong client secret → `invalid_client`; replayed code →
   `invalid_grant`.
-- ⏳ Sign-up and reset **emails** can only be checked once the worker (phase 5) consumes the queue;
-  re-run this check then.
+- ✅ Sign-up and reset **emails** arrive in Mailpit and the verify link marks the user verified
+  (checked with the worker in phase 5).
 
 Notes:
 
@@ -152,6 +151,23 @@ requeued forever (philgeps requeues indefinitely).
 
 **Check:** with `accounts` and `worker` running, sign-up and reset emails appear in Mailpit
 (http://localhost:5004).
+
+Verified 2026-10-06:
+
+- ✅ `GET :5012/health` → `200 {"broker":"connected"}` (`503` while the broker is down).
+- ✅ Sign-up → `verify-email` and reset → `reset-password` delivered to Mailpit; following the
+  verify link sets `emailVerified`. A name of `<b>Tess</b> & Co` arrives escaped in the HTML.
+- ✅ Malformed job (unknown template) → straight to `email.dlq`, no retries.
+- ✅ Mailpit stopped mid-send → attempts 1–3 fail (`x-delivery-count` counts them), Mailpit back →
+  attempt 4 delivers.
+
+Notes:
+
+- Jobs are validated with Zod in the worker; a job that can never succeed is dead-lettered at once
+  rather than using up its deliveries.
+- A requeued message is redelivered immediately, so the worker waits 2s, 4s, 8s, 16s before each
+  requeue. Without that, a few seconds of SMTP downtime would use all 5 attempts.
+- nodemailer 10 ships its own types (no `@types/nodemailer`).
 
 ---
 

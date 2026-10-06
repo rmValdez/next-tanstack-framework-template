@@ -27,16 +27,15 @@ Shared packages: `packages/accounts-db`, `packages/web-db` (Prisma 7 + `@prisma/
 
 ## Status (2026-10-06)
 
-- Done: phases 1–4 (root config, `packages/*`, `apps/accounts`), plus all documentation.
-  `accounts` is verified with curl through the full OIDC code flow; its email flows wait for
-  the worker.
-- Not started: phases 5–8 (`apps/worker`, `apps/web`, verification, final docs).
+- Done: phases 1–5 (root config, `packages/*`, `apps/accounts`, `apps/worker`), plus all
+  documentation. `accounts` is verified with curl through the full OIDC code flow; sign-up and
+  reset emails are verified end to end through the worker into Mailpit.
+- Not started: phases 6–8 (`apps/web`, verification, final docs).
 - Git: remote `origin` = github.com/rmValdez/next-tanstack-framework-template, branch `main`.
   No Claude co-author trailers in commits.
 - Ports: infra 5000–5004, apps 5010 (web), 5011 (accounts), 5012 (worker).
-- **Next step:** phase 5 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/worker`):
-  consume `email` with `assertEmailQueues()` from `@workspace/core/queue/topology`, render the two
-  templates, send via nodemailer to Mailpit, then re-check phase 4's sign-up/reset emails.
+- **Next step:** phase 6 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/web`):
+  genericOAuth client of `accounts`, shadow user in `web_db`, own session.
 
 ## Documentation map
 

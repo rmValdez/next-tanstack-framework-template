@@ -2,8 +2,8 @@
 
 Running, changing, and debugging the template locally.
 
-> **Status:** commands work for what is built so far (phases 1–4: `pnpm db:setup`, `accounts` dev
-> server). `worker` and `web` arrive in phases 5–6 of the [implementation plan](implementation-plan.md).
+> **Status:** commands work for what is built so far (phases 1–5: `pnpm db:setup`, `accounts` and
+> `worker`). `web` arrives in phase 6 of the [implementation plan](implementation-plan.md).
 
 ---
 
