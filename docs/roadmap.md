@@ -4,7 +4,7 @@ The work ahead, in order. Each step lists its tasks, what is already known, and 
 closes it. What has been built so far, with its test results and gotchas, is in
 [build-log.md](build-log.md). Why each choice was made: [decisions.md](decisions.md).
 
-**Order (agreed 2026-10-06):** ~~1 database separation + app-to-app auth~~ ✅ → 2 global sign-out →
+**Order (agreed 2026-10-06):** ~~1 database separation + app-to-app auth~~ ✅ → ~~2 global sign-out~~ ✅ →
 3 exam on TanStack Start → 4 new apps → 5 events.
 
 **Standing rule for every step:** `pnpm dev` starts every app and each UI app reaches its landing
@@ -20,19 +20,9 @@ step 1.
 
 ---
 
-## Step 2: global sign-out (D19)
+## Step 2: global sign-out (D19) ✅
 
-- Verify in `@better-auth/oauth-provider` 1.7.7 whether back-channel logout is supported (the
-  `oauthClient.backchannelLogoutUri` / `backchannelLogoutSessionRequired` fields suggest it).
-- If yes: seed each client's `backchannelLogoutUri` (`{app}/api/auth/backchannel-logout` or the
-  route the library expects); each app handles the logout token (verify signature, `aud`, `sid` /
-  `sub`) and deletes that user's local sessions.
-- If no: build it. Accounts, on end-session / sign-out, POSTs a signed logout token to every
-  client's URI; each app verifies with JWKS and deletes sessions for the `sub`.
-- UI: one "Sign out" that ends everything (keep "sign out of this app only" only if wanted).
-
-**Done when:** signed in to hr, finance and exam; sign out in finance; hr and exam both require
-sign-in on the next request.
+Done 2026-10-07 with OIDC Back-Channel Logout. [Build log](build-log.md), step 2.
 
 ---
 

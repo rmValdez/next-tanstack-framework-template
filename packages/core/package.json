@@ -7,6 +7,7 @@
     "./env": "./src/env.ts",
     "./urls": "./src/urls.ts",
     "./apis": "./src/apis.ts",
+    "./oidc": "./src/oidc.ts",
     "./redirect": "./src/redirect.ts",
     "./queue/types": "./src/queue/types.ts",
     "./queue/topology": "./src/queue/topology.ts",
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "amqplib": "^2.2.0",
+    "jose": "^6.2.12",
     "zod": "^3.25.76"
   },
   "devDependencies": {

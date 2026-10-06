@@ -181,17 +181,16 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D19. OIDC stays; global sign-out is required
 
-- **Date:** 2026-10-06. **Status:** OIDC built; global sign-out **not built** ([roadmap](roadmap.md)
-  step 2).
-- **Chosen:** keep OIDC as the authentication standard (D1). Signing out in any app must end the
-  accounts session **and** every app's local session. Today "sign out everywhere" ends only the
-  current app and accounts; other apps keep their session until it expires.
-- **Planned mechanism:** OIDC back-channel logout. Each client registers a `backchannelLogoutUri`
-  (the field exists in `oauthClient`); accounts sends a signed logout token on sign-out; each app
-  deletes the sessions of that user. To verify first: what `@better-auth/oauth-provider` 1.7.7
-  supports natively. Fallback: apps check the accounts session (`sid`) on each request, cached
-  briefly.
-- **Why:** user requirement ("sign out from Finance → must authenticate again everywhere").
+- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](build-log.md), step 2).
+- **Chosen:** keep OIDC as the authentication standard (D1). Signing out in any app ends the
+  accounts session **and** every app's local session, through **OIDC Back-Channel Logout**:
+  `@better-auth/oauth-provider` 1.7.7 sends signed logout tokens to each client's
+  `backchannelLogoutUri` when an accounts session is deleted; each app verifies the token
+  (`@workspace/core/oidc`) and deletes the user's sessions. The UI has a single "Sign out".
+- **Alternatives:** front-channel logout (iframes; unreliable with third-party cookie blocking);
+  apps checking the accounts session on every request (an accounts call per request).
+- **Why:** user requirement ("sign out from Finance → must authenticate again everywhere"), and it
+  is supported natively on the provider side.
 
 ### D20. Final application list and framework per app
 

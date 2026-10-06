@@ -34,19 +34,21 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | `crm`, `operations`, `analytics`, `collaboration`, `workspace` | Not created                                                                                                         |
 | Data                                                           | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                          |
 | App-to-app tokens (D18)                                        | Built: finance → HR via `@workspace/core/apis`                                                                      |
-| Global sign-out, events                                        | Decided, not built (roadmap steps 2 and 5)                                                                          |
+| Global sign-out (D19)                                          | Built: OIDC back-channel logout, `@workspace/core/oidc`, one Sign out button                                        |
+| Events                                                         | Decided, not built (roadmap step 5)                                                                                 |
 | Checks                                                         | `pnpm dev` runs every app together, landing pages and SSO verified per app; type-check 21/21, lint 7/7, build 12/12 |
 | Docs                                                           | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                         |
 
-Last commits: `53862db` docs rewrite, then roadmap step 1. Not pushed.
+Last commits: `53862db` docs rewrite, `97a9a1d` step 1, then step 2. Not pushed.
 
 ## Resume here
 
-Follow [docs/roadmap.md](docs/roadmap.md) in order. Step 1 (own databases + app-to-app tokens)
-is done. **Next: step 2, global sign-out** (D19): first verify what `@better-auth/oauth-provider`
-1.7.7 offers for back-channel logout (`oauthClient.backchannelLogoutUri` exists).
+Follow [docs/roadmap.md](docs/roadmap.md) in order. Steps 1 (own databases + app-to-app tokens)
+and 2 (global sign-out) are done. **Next: step 3, exam on TanStack Start**: replace the Next.js
+copy in `apps/exam` with a TanStack Start app (reference: philgeps `apps/philgeps`), keeping
+port 5016, `exam_db`, the OAuth client, `/api/health` and `/api/backchannel-logout`.
 
-Then: step 3 exam on TanStack Start → step 4 crm, operations, analytics,
+Then: step 4 crm, operations, analytics,
 collaboration, workspace → step 5 events. Feature work for recruitment/attendance etc. is paused by
 the user until those steps are done ("the idea is they are working and running").
 
@@ -114,6 +116,9 @@ no Redis in v1 · hashed OAuth client secrets · email verification by link.
 - `oauthProvider` resumes `/login` via a signed query; `/login` needs `oauthProviderClient()`.
   `consentPage` is required.
 - Client secrets stored hashed (SHA-256 → base64url); the seed hashes the same way.
+- Back-channel logout: the provider sends `logout+jwt` tokens to each client's
+  `backchannelLogoutUri` when an accounts session is deleted; the RP side is ours
+  (`@workspace/core/oidc`). Client side of Better Auth has no receiver.
 - `signOut()` also ends the accounts session unless `disableRedirect: true`;
   `post_logout_redirect_uri` always ends in `/`, registered that way by the seed.
 - Schema generation: package `auth` (`pnpm auth:schema`), not `@better-auth/cli`.

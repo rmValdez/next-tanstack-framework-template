@@ -3,13 +3,13 @@
 How identity moves between `accounts` and the domain apps. Read [ARCHITECTURE.md](../ARCHITECTURE.md)
 first for the service map.
 
-| Flow                                                 | State (2026-10-07)                                                |
-| :--------------------------------------------------- | :---------------------------------------------------------------- |
-| SSO sign-in (OIDC code + PKCE) for every domain app  | ✅ Built, verified for hr, finance, recruitment, attendance, exam |
-| Sign out of one app / sign out of app + accounts     | ✅ Built                                                          |
-| **Global sign-out** (every app loses its session)    | ❌ Required, not built ([roadmap](roadmap.md) step 2, D19)        |
-| **App-to-app calls** (finance → HR API)              | ✅ Built (D18): client credentials, JWT, verified by HR           |
-| Sign-up, verification, reset, rate limits (accounts) | ✅ Built                                                          |
+| Flow                                                      | State (2026-10-07)                                                |
+| :-------------------------------------------------------- | :---------------------------------------------------------------- |
+| SSO sign-in (OIDC code + PKCE) for every domain app       | ✅ Built, verified for hr, finance, recruitment, attendance, exam |
+| Sign out (one button, ends the app and accounts sessions) | ✅ Built                                                          |
+| **Global sign-out** (every app loses its session)         | ✅ Built (D19): OIDC back-channel logout                          |
+| **App-to-app calls** (finance → HR API)                   | ✅ Built (D18): client credentials, JWT, verified by HR           |
+| Sign-up, verification, reset, rate limits (accounts)      | ✅ Built                                                          |
 
 Examples use `hr` (port 5010); every domain app works the same way with its own name, port and
 cookie prefix.
@@ -102,18 +102,53 @@ a code. Every domain app is a first-party client seeded with `skipConsent: true`
 
 ---
 
-## 4. Sign-out
+## 4. Sign-out (global, D19)
 
-| Action                  | What happens today                                                                                                                                                                                             | Target (D19)                                                      |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
-| "Sign out" in an app    | `authClient.signOut({ disableRedirect: true })`: only that app's session ends                                                                                                                                  | Ends everything (global)                                          |
-| "Sign out everywhere"   | `authClient.signOut()`: the app's session ends, the browser goes to accounts `/oauth2/end-session` (ID token hint), the accounts session ends, accounts redirects back to the app (`post_logout_redirect_uri`) | Same, plus every other app's sessions end                         |
-| Other apps after either | ❌ Still signed in until their own session expires (7 days)                                                                                                                                                    | ✅ Signed out (back-channel logout, [roadmap](roadmap.md) step 2) |
-| Password reset          | accounts revokes all accounts sessions                                                                                                                                                                         | Also ends app sessions                                            |
+Every app has one **Sign out** button. Signing out anywhere signs the user out everywhere.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant F as finance
+    participant A as accounts
+    participant H as hr
+    participant E as exam
+
+    U->>F: Sign out
+    F->>F: authClient.signOut(): delete finance session
+    F-->>U: Redirect → A /oauth2/end-session?id_token_hint=…&post_logout_redirect_uri=…
+    U->>A: GET end-session
+    A->>A: Delete the accounts session
+    par back-channel (server to server)
+        A->>H: POST /api/backchannel-logout (logout_token)
+        A->>E: POST /api/backchannel-logout (logout_token)
+    end
+    H->>H: Verify token, delete the user's hr sessions
+    E->>E: Verify token, delete the user's exam sessions
+    A-->>U: Redirect → finance /
+```
+
+- **Trigger:** accounts sends logout tokens whenever an accounts session is deleted: end-session,
+  sign-out on accounts itself, session revocation (e.g. password reset). Recipients are the clients
+  holding tokens issued under that session, i.e. every app the user signed in to through it.
+- **Logout token:** JWT signed with the ID-token key, `typ: logout+jwt`, `iss`, `aud` = client id,
+  `sub` = accounts user id, `sid` = accounts session, back-channel `events` claim, 2-minute
+  lifetime. accounts makes one delivery attempt per app (5 s timeout), as the spec says.
+- **Receiver:** `POST /api/backchannel-logout` in every app (`apps/<app>/src/app/api/backchannel-logout`),
+  built on `handleBackchannelLogout()` from `@workspace/core/oidc`, which verifies signature (JWKS),
+  issuer, audience, `typ`, events and no `nonce`. The app then deletes **all** sessions of the user
+  linked to that `sub` (it does not track which accounts session each local one came from).
+  Invalid or missing tokens → 400. The URI is registered per client by the accounts seed
+  (`backchannelLogoutUri`).
+- Sessions are database-checked on every request (no cookie cache), so a deleted session is
+  rejected on the next page load or API call.
 
 Gotchas (verified): Better Auth builds `post_logout_redirect_uri` with `new URL()`, so it always ends
 in `/`; the seed registers `${appUrl}/` to match exactly. `signOut()` follows the end-session URL
-automatically unless `disableRedirect: true`.
+automatically unless `disableRedirect: true`. Dynamic client registration only accepts https,
+public `backchannel_logout_uri`s; the seed writes the URI directly, so `http://localhost` works in
+development, and delivery itself does not check the host.
 
 ---
 

@@ -9,7 +9,8 @@ through their APIs or events.
 > **State (2026-10-07):** this page describes the agreed target (decisions D17–D20). Built today:
 > `accounts`, `worker`, `hr`, `finance`, each domain on its own database, Finance reading HR
 > through HR's API with an app token; `recruitment`, `attendance`, `exam` scaffolded (sign-in only,
-> `exam` still on Next.js). Next: global sign-out ([roadmap](docs/roadmap.md) step 2). Progress:
+> `exam` still on Next.js). Global sign-out works across all apps. Next: exam on TanStack Start ([roadmap](docs/roadmap.md)
+> step 3). Progress:
 > [build log](docs/build-log.md).
 
 ---
@@ -95,8 +96,9 @@ graph TD
   (`client_secret_basic`), reads userinfo, upserts its shadow user, and creates its own session.
   Returning users skip `/login`: one click.
 - **Authorization** is per app: accounts says who the user is; each domain decides what they may do.
-- **Sign-out:** today, "sign out everywhere" ends the current app and the accounts session.
-  **Required (D19):** every app's session ends too, via back-channel logout (roadmap step 2).
+- **Sign-out (D19):** one "Sign out" in any app ends that app's session and the accounts session;
+  accounts then sends an OIDC back-channel logout token to every other app the user signed in to,
+  and each deletes the user's sessions.
 - **App-to-app (D18):** a calling app gets a JWT from accounts with the client-credentials grant,
   audience = the owner's API, scoped (`hr:employees.read`); the owner verifies it with accounts'
   JWKS.

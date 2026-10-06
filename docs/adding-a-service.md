@@ -82,7 +82,8 @@ pnpm dev
 ```
 
 Check: landing page loads; `/dashboard` signed out → 307 to `/sso/start`; sign-in returns to
-`/dashboard`; "Sign out everywhere" returns to the landing page.
+`/dashboard`; "Sign out" returns to the landing page and signs the user out of the other apps
+too (the copied `src/app/api/backchannel-logout/route.ts` handles that; the seed registers its URI).
 
 **Checklist:** unique port · cookie prefix · own database and role · own auth secret · client seeded ·
 URL in `trustedOrigins` and `core/urls.ts` · env in `.env.example` and `turbo.json`.

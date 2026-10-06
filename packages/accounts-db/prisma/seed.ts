@@ -146,6 +146,11 @@ async function seedClient({ app, name, clientId, clientSecret, url }: (typeof CL
     // Matched exactly too. Better Auth's sign-out builds this with `new URL()`, which
     // always adds the trailing slash.
     postLogoutRedirectUris: [`${appUrl}/`],
+    // Global sign-out (D19): when the user's accounts session ends, accounts POSTs a signed
+    // logout token here and the app ends that user's sessions. Written directly, so the
+    // https/public-host checks of dynamic registration don't block localhost in development.
+    backchannelLogoutUri: `${appUrl}/api/backchannel-logout`,
+    backchannelLogoutSessionRequired: false,
     scopes: [...OIDC_SCOPES, ...apiScopes],
     grantTypes: [
       "authorization_code",

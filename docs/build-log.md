@@ -306,3 +306,35 @@ Gotchas:
   `WWW-Authenticate` header; pass both through rather than mapping to a generic 401.
 - Deliberately not changed: accounts still connects as `postgres` in development (a dedicated
   `accounts_app` role is part of the production checklist).
+
+---
+
+## Step 2: global sign-out (2026-10-07)
+
+| Area                   | Change                                                                                                                                                                                                                                       |
+| :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider               | Nothing to build: `@better-auth/oauth-provider` 1.7.7 already plans and sends back-channel logout tokens when an accounts session is deleted (`session.delete` hook), to clients with tokens from that session and a `backchannelLogoutUri`. |
+| `@workspace/core/oidc` | `verifyLogoutToken()` (jose, accounts JWKS, `iss`, `aud`, `typ: logout+jwt`, events claim, no `nonce`, `sub`) and `handleBackchannelLogout()` (form body, 400 on bad tokens, `Cache-Control: no-store`). `jose` added to core.               |
+| Every app              | `POST /api/backchannel-logout`: maps `sub` to the local user via `account.accountId` and deletes all their sessions. `UserMenu`: one **Sign out** (`authClient.signOut()`), the "this app only" option removed.                              |
+| accounts seed          | `backchannelLogoutUri: ${appUrl}/api/backchannel-logout`, `backchannelLogoutSessionRequired: false` per client.                                                                                                                              |
+
+Verified (curl, one cookie jar, one `pnpm dev`):
+
+- ✅ Signed in to hr (password), finance and exam (one click each); sign out in finance → hr, finance
+  and exam dashboards all 307, every app's `session` table empty, accounts session gone; the logs
+  show each app receiving and accepting a logout token.
+- ✅ Signing out on accounts itself also ends the hr session.
+- ✅ `/api/backchannel-logout` without a token, with garbage, or with an unsigned forged token → 400.
+- ✅ All five apps: SSO round-trip, guard, sign-out → landing page; landing pages 200; `type-check`
+  21/21, `lint` 7/7, `build` 12/12.
+
+Gotchas:
+
+- Better Auth's client side (genericOAuth) has no back-channel receiver; it is ours, in core.
+- Dynamic client registration rejects non-https or private `backchannel_logout_uri`s; the seed writes
+  the client row directly, and delivery does not re-check the host, so localhost works in dev.
+- accounts' `/sign-in/email` limit (5 per 60 s) is easy to hit in test scripts; failures look like
+  a missing callback URL.
+- Ending _all_ of a user's sessions in an app (not only the one tied to the ended accounts `sid`)
+  also signs out that user's other browsers in that app. Acceptable for now; tracking `sid` per
+  local session would make it exact.
