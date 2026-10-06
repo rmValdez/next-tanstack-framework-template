@@ -11,8 +11,8 @@ export default defineConfig({
     // `prisma generate` doesn't connect, so a placeholder keeps it working without a .env
     // (CI, fresh clones). Commands that touch the database fail loudly on it instead.
     url: process.env.FINANCE_DATABASE_URL || "postgresql://missing:missing@localhost:1/missing",
-    // finance_app may not create databases, so `migrate dev` replays into a dedicated one. It
-    // needs ?schema=finance too, or the replay lands in the shadow database's public schema.
+    // finance_app may not create databases, so `migrate dev` replays into a dedicated one
+    // (finance_shadow, created by docker/postgres/init.sql).
     shadowDatabaseUrl: process.env.FINANCE_SHADOW_DATABASE_URL,
   },
 });

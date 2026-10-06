@@ -22,7 +22,7 @@ export function PayrollView() {
         <div>
           <h2 className="mb-1 text-2xl font-bold tracking-tight text-white">Payroll</h2>
           <p className="text-sm text-slate-400">
-            Finance owns these entries. Employee names come from HR&apos;s published directory.
+            Finance owns these entries. Employee names come from HR&apos;s API.
           </p>
         </div>
         <Button

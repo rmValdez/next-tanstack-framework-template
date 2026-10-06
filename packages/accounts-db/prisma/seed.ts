@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { API_GRANTS, API_RESOURCES } from "@workspace/core/apis";
 import { parseEnv } from "@workspace/core/env";
 import { hashPassword } from "better-auth/crypto";
 import { z } from "zod";
@@ -37,33 +38,39 @@ const env = parseEnv(
 );
 
 // One entry per domain app that signs in through accounts. A new app adds its URL and
-// client credentials to the schema above and an entry here.
+// client credentials to the schema above and an entry here. `app` links the client to
+// API_GRANTS in @workspace/core/apis (which APIs it may call).
 const CLIENTS = [
   {
+    app: "hr",
     name: "HR",
     clientId: env.HR_OAUTH_CLIENT_ID,
     clientSecret: env.HR_OAUTH_CLIENT_SECRET,
     url: env.NEXT_PUBLIC_HR_URL,
   },
   {
+    app: "finance",
     name: "Finance",
     clientId: env.FINANCE_OAUTH_CLIENT_ID,
     clientSecret: env.FINANCE_OAUTH_CLIENT_SECRET,
     url: env.NEXT_PUBLIC_FINANCE_URL,
   },
   {
+    app: "recruitment",
     name: "Recruitment",
     clientId: env.RECRUITMENT_OAUTH_CLIENT_ID,
     clientSecret: env.RECRUITMENT_OAUTH_CLIENT_SECRET,
     url: env.NEXT_PUBLIC_RECRUITMENT_URL,
   },
   {
+    app: "attendance",
     name: "Attendance",
     clientId: env.ATTENDANCE_OAUTH_CLIENT_ID,
     clientSecret: env.ATTENDANCE_OAUTH_CLIENT_SECRET,
     url: env.NEXT_PUBLIC_ATTENDANCE_URL,
   },
   {
+    app: "exam",
     name: "Exam",
     clientId: env.EXAM_OAUTH_CLIENT_ID,
     clientSecret: env.EXAM_OAUTH_CLIENT_SECRET,
@@ -119,9 +126,15 @@ async function seedAdmin() {
   }
 }
 
-async function seedClient({ name, clientId, clientSecret, url }: (typeof CLIENTS)[number]) {
+const OIDC_SCOPES = ["openid", "profile", "email", "offline_access"];
+
+async function seedClient({ app, name, clientId, clientSecret, url }: (typeof CLIENTS)[number]) {
   const appUrl = url.replace(/\/+$/, "");
   const now = new Date();
+
+  // APIs this app may call with an app token (client credentials, D18).
+  const grants = API_GRANTS.filter((grant) => grant.app === app);
+  const apiScopes = [...new Set(grants.flatMap((grant) => grant.scopes))];
 
   // First-party client: consent is skipped, PKCE is required, and the redirect URI is
   // matched exactly against what genericOAuth sends (`/api/auth/callback/<providerId>`).
@@ -133,8 +146,14 @@ async function seedClient({ name, clientId, clientSecret, url }: (typeof CLIENTS
     // Matched exactly too. Better Auth's sign-out builds this with `new URL()`, which
     // always adds the trailing slash.
     postLogoutRedirectUris: [`${appUrl}/`],
-    scopes: ["openid", "profile", "email", "offline_access"],
-    grantTypes: ["authorization_code", "refresh_token"],
+    scopes: [...OIDC_SCOPES, ...apiScopes],
+    grantTypes: [
+      "authorization_code",
+      "refresh_token",
+      ...(grants.length > 0 ? ["client_credentials"] : []),
+    ],
+    // The ceiling for client-credentials tokens; empty when the app calls no API.
+    clientCredentialsScopes: apiScopes,
     responseTypes: ["code"],
     // The token endpoint rejects any other method than the registered one, so the app's
     // genericOAuth config must use `tokenEndpointAuth: { method: "client_secret_basic" }`.
@@ -152,10 +171,38 @@ async function seedClient({ name, clientId, clientSecret, url }: (typeof CLIENTS
     update: client,
     create: { id: randomUUID(), clientId, createdAt: now, ...client },
   });
+
+  // With enforcePerClientResources (the default), a client may only request resources it is
+  // linked to. Links are replaced so a grant removed from API_GRANTS is revoked here too.
+  await accountsDb.oauthClientResource.deleteMany({ where: { clientId } });
+  for (const { resource } of grants) {
+    await accountsDb.oauthClientResource.create({
+      data: { id: randomUUID(), clientId, resourceId: resource.identifier, createdAt: now },
+    });
+  }
+}
+
+// accounts also writes these rows at startup (oauthProvider `resources`, "overwrite"); the
+// seed writes them first so client links can be created before accounts has ever run.
+async function seedApiResources() {
+  const now = new Date();
+  for (const resource of Object.values(API_RESOURCES)) {
+    const data = {
+      name: resource.name,
+      allowedScopes: Object.values(resource.scopes),
+      updatedAt: now,
+    };
+    await accountsDb.oauthResource.upsert({
+      where: { identifier: resource.identifier },
+      update: data,
+      create: { id: randomUUID(), identifier: resource.identifier, createdAt: now, ...data },
+    });
+  }
 }
 
 async function main() {
   await seedAdmin();
+  await seedApiResources();
   for (const client of CLIENTS) {
     await seedClient(client);
   }
@@ -163,6 +210,9 @@ async function main() {
   console.log("Seeded accounts_db:");
   console.log(`  User:          ${DEFAULT_USER.email} / ${DEFAULT_USER.password}`);
   console.log(`  OAuth clients: ${CLIENTS.map((c) => c.clientId).join(", ")}`);
+  console.log(
+    `  API grants:    ${API_GRANTS.map((g) => `${g.app} → ${g.resource.name}`).join(", ")}`
+  );
 }
 
 main()

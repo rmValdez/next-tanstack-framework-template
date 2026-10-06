@@ -11,8 +11,8 @@ export default defineConfig({
     // `prisma generate` doesn't connect, so a placeholder keeps it working without a .env
     // (CI, fresh clones). Commands that touch the database fail loudly on it instead.
     url: process.env.HR_DATABASE_URL || "postgresql://missing:missing@localhost:1/missing",
-    // hr_app may not create databases, so `migrate dev` replays into a dedicated one. It
-    // needs ?schema=hr too, or the replay lands in the shadow database's public schema.
+    // hr_app may not create databases, so `migrate dev` replays into a dedicated one
+    // (hr_shadow, created by docker/postgres/init.sql).
     shadowDatabaseUrl: process.env.HR_SHADOW_DATABASE_URL,
   },
 });

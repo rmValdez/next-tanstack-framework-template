@@ -17,9 +17,6 @@ quoting everywhere); npm packages use a hyphen.
 
 `accounts` is the exception: `accounts_db`, connected as `postgres` in development.
 
-> Until [roadmap](roadmap.md) step 1 is done, existing domains use `company_db?schema=<app>`
-> instead of `<app>_db`. New apps should wait for step 1 or follow the current pattern.
-
 ---
 
 ## A new Next.js domain app
@@ -117,7 +114,11 @@ Caller side (e.g. finance):
 - Fetch and cache a token from `/oauth2/token` (`grant_type=client_credentials`, `scope`,
   `resource`), call the API with `Authorization: Bearer`.
 
-Details and the researched option names: [roadmap](roadmap.md) step 1b, D18.
+Concretely: add the API to `API_RESOURCES` and the caller to `API_GRANTS` in
+`packages/core/src/apis.ts` (accounts config and seed pick both up), copy
+`apps/hr/src/lib/app-token.ts` to the owner and `apps/finance/src/lib/hr-client.ts` to the caller,
+then `pnpm --filter @workspace/accounts-db db:seed` and restart accounts. See D18 and
+[auth-flows.md](auth-flows.md#5-app-to-app-calls-d18).
 
 ---
 

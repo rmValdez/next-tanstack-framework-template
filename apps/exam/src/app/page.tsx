@@ -63,7 +63,7 @@ export default async function HomePage({
       </section>
 
       <footer className="mt-auto border-t border-slate-900 px-6 py-8 text-center text-xs text-slate-500">
-        <p>Next.js 15 · TanStack Query · Better Auth (OIDC client) · Prisma on company_db.</p>
+        <p>Next.js 15 · TanStack Query · Better Auth (OIDC client) · Prisma, own database.</p>
       </footer>
     </div>
   );

@@ -11,8 +11,8 @@ export default defineConfig({
     // `prisma generate` doesn't connect, so a placeholder keeps it working without a .env
     // (CI, fresh clones). Commands that touch the database fail loudly on it instead.
     url: process.env.EXAM_DATABASE_URL || "postgresql://missing:missing@localhost:1/missing",
-    // exam_app may not create databases, so `migrate dev` replays into a dedicated one. It
-    // needs ?schema=exam too, or the replay lands in the shadow database's public schema.
+    // exam_app may not create databases, so `migrate dev` replays into a dedicated one
+    // (exam_shadow, created by docker/postgres/init.sql).
     shadowDatabaseUrl: process.env.EXAM_SHADOW_DATABASE_URL,
   },
 });

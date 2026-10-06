@@ -88,8 +88,8 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D13. Shared `company_db` with one schema per domain
 
-- **Status:** built and verified on 2026-10-06 (phases 6–7), then **superseded by D17**. Kept here
-  because the repo still runs on it until [roadmap](roadmap.md) step 1 is done.
+- **Status:** built and verified on 2026-10-06 (phases 6–7), then **superseded by D17**;
+  `company_db` was dropped on 2026-10-07 (roadmap step 1).
 - **Chosen (then):** domains shared `company_db`, one schema and one Postgres role per domain,
   ownership enforced by grants, cross-domain reads through versioned `<domain>_public` views.
 - **Why it lost:** reads through views still couple domains at the SQL level, and splitting a
@@ -145,7 +145,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D17. One database per domain (`<app>_db`), replacing `company_db`
 
-- **Date:** 2026-10-06. **Status:** decided, not built ([roadmap](roadmap.md) step 1).
+- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](build-log.md), step 1).
 - **Chosen:** `accounts_db` for identity, and one database per business domain: `hr_db`,
   `finance_db`, `recruitment_db`, `attendance_db`, `exam_db`, `crm_db`, `operations_db`,
   `analytics_db`, `collaboration_db`, `workspace_db`. Each is owned by its role `<app>_app`, with
@@ -162,7 +162,11 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D18. App-to-app calls: accounts-issued JWT access tokens (client credentials)
 
-- **Date:** 2026-10-06. **Status:** decided, not built ([roadmap](roadmap.md) step 1).
+- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](build-log.md), step 1).
+- **Where:** `@workspace/core/apis` (`API_RESOURCES`, `API_SCOPES`, `API_GRANTS`, response
+  contracts like `HrEmployeeV1`) is the single definition used by accounts' `oauthProvider`
+  config, its seed, the owner (`apps/hr/src/lib/app-token.ts`) and the caller
+  (`apps/finance/src/lib/hr-client.ts`).
 - **Chosen:** a calling app (e.g. finance) is an OAuth client with the `client_credentials` grant.
   It asks accounts for a token with `resource=<owner API identifier>` and a scope such as
   `hr:employees.read`. Accounts declares each owner API as an `oauthProvider` **resource**

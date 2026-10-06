@@ -54,12 +54,9 @@ The pattern is the same for every domain app `<app>` (`HR`, `FINANCE`, `RECRUITM
 | `<APP>_OAUTH_CLIENT_ID`     | non-empty  | Equals the app name; must match the seeded client.                     |
 | `<APP>_OAUTH_CLIENT_SECRET` | ≥ 32 chars | Stored hashed in `accounts_db`. After changing it, run `pnpm db:seed`. |
 
-Database URLs:
-
-|                             | Today (`company_db`, D13)                                                | After [roadmap](roadmap.md) step 1 (D17)                  |
-| :-------------------------- | :----------------------------------------------------------------------- | :-------------------------------------------------------- |
-| `<APP>_DATABASE_URL`        | `postgresql://<app>_app:<app>_pw@localhost:5000/company_db?schema=<app>` | `postgresql://<app>_app:<app>_pw@localhost:5000/<app>_db` |
-| `<APP>_SHADOW_DATABASE_URL` | `…/<app>_shadow?schema=<app>`                                            | `…/<app>_shadow`                                          |
+Database URLs (D17): `<APP>_DATABASE_URL=postgresql://<app>_app:<app>_pw@localhost:5000/<app>_db`,
+`<APP>_SHADOW_DATABASE_URL=postgresql://<app>_app:<app>_pw@localhost:5000/<app>_shadow`. Each
+role can connect only to its own two databases.
 
 ### worker
 

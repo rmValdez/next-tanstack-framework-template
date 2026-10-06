@@ -10,7 +10,7 @@ export const getCurrentSession = cache(async () => {
   return auth.api.getSession({ headers: await headers() });
 });
 
-// Verifies against the exam schema rather than trusting cookie presence. Without a Exam session
+// Verifies against exam_db rather than trusting cookie presence. Without a session here
 // the user goes through /sso/start, which signs in through accounts and comes back to
 // `returnTo` (one click when already signed in to accounts).
 export async function requireAuth(returnTo = "/dashboard"): Promise<CurrentSession> {

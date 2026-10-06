@@ -8,7 +8,7 @@ import { serverEnv } from "@/lib/config.server";
 import { ACCOUNTS_PROVIDER_ID } from "@/lib/sso";
 
 // attendance has no passwords: every user signs in through accounts over OIDC, and this app
-// keeps a shadow user plus its own session in the attendance schema of company_db.
+// keeps a shadow user plus its own session in attendance_db.
 export const auth = betterAuth({
   appName: "Attendance",
   database: prismaAdapter(attendanceDb, {

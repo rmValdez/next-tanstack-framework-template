@@ -266,3 +266,43 @@ Verified 2026-10-06:
 
 Superseded later the same day: D17 replaces the `hr_public` view with an HR API call
 ([roadmap](roadmap.md) step 1). Events were decided as D16.
+
+---
+
+## Step 1: one database per domain + Finance → HR API (2026-10-07)
+
+| Area                   | Change                                                                                                                                                                                                                                             |
+| :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Databases              | `init.sql`: `accounts_db` + per domain `<app>_db` and `<app>_shadow` owned by `<app>_app`; `REVOKE CONNECT … FROM PUBLIC` on all of them (including `accounts_db`). `company_db` and the old `web_db` dropped.                                     |
+| Domain packages        | No `schemas` / `@@schema`; finance lost the view model and `views` preview feature; fresh `init` migration per package (`public` schema of its own database).                                                                                      |
+| `@workspace/core/apis` | `API_RESOURCES` (HR API: `${hrUrl}/api/v1`, scope `hr:employees.read`), `API_SCOPES`, `API_GRANTS` (finance → HR), contract `HrEmployeeV1`.                                                                                                        |
+| accounts               | `oauthProvider({ scopes: [...OIDC, ...API_SCOPES], resources, resourceSeedMode: "overwrite" })`. Seed: upserts `oauthResource` rows, gives granted clients `client_credentials` + `clientCredentialsScopes`, rewrites `oauthClientResource` links. |
+| hr                     | `GET /api/v1/employees`, `GET /api/v1/employees/[id]` (bearer only, `requireAppToken`), read model without salary. Depends on `@better-auth/oauth-provider` (`/resource-client`).                                                                  |
+| finance                | `lib/hr-client.ts` (client-credentials token, cached until 60 s before expiry, shared in-flight request, one retry on 401); payroll uses it; HR down → 503.                                                                                        |
+
+Verified (curl, one `pnpm dev`):
+
+- ✅ `finance_app` cannot connect to `hr_db`, `exam_db` or `accounts_db` (`permission denied for database`).
+- ✅ Token: `client_credentials` for finance → EdDSA JWT (`typ: at+jwt`), `aud` = HR API, `scope`
+  `hr:employees.read`, 1 h. Unknown scope → `invalid_scope`; the HR client (no grant) →
+  `unauthorized_client`; without `resource` accounts issues an opaque token.
+- ✅ HR `/api/v1/employees`: no token / garbage / opaque token → 401 with `WWW-Authenticate`;
+  valid → 200; unknown id → 404; no salary in the response.
+- ✅ Finance e2e unchanged in behavior: employee list from HR, payroll 201 / 409 / 400, unknown and
+  terminated employee rejected, HR rename visible on the next read, 401 without session.
+- ✅ HR process stopped → finance `/api/employees` 503 "HR is unavailable", payroll page still loads,
+  other apps unaffected.
+- ✅ All five domain apps: SSO round-trip, 307 guard, sign-out everywhere; each shadow user lands in
+  its own `<app>_db`. No errors or warnings in the `pnpm dev` log. `type-check` 21/21, `lint` 7/7,
+  `build` 12/12.
+
+Gotchas:
+
+- The existing `<app>_shadow` databases still held the old schema-based tables; they were dropped
+  and recreated empty before the new baseline migrations.
+- A database owned by `postgres` (accounts_db) is still connectable by every role until
+  `REVOKE CONNECT … FROM PUBLIC`; tables were not readable (no grants), but now the door is shut too.
+- `verifyBearerToken` throws better-call `APIError`s with `statusCode` (401/403) and a
+  `WWW-Authenticate` header; pass both through rather than mapping to a generic 401.
+- Deliberately not changed: accounts still connects as `postgres` in development (a dedicated
+  `accounts_app` role is part of the production checklist).

@@ -1,6 +1,7 @@
 import { createPayrollSchema } from "@/features/payroll/schema";
 import { createPayrollEntry, listPayroll, PayrollError } from "@/features/payroll/server";
 import { requireApiSession } from "@/lib/api";
+import { HrUnavailableError } from "@/lib/hr-client";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,22 @@ function prismaErrorCode(error: unknown): string | undefined {
   return undefined;
 }
 
+// Payroll needs HR to name and validate employees; without it, say so instead of a 500.
+function hrUnavailable(error: HrUnavailableError) {
+  console.error("[finance] HR API:", error.message);
+  return Response.json({ error: "HR is unavailable. Try again shortly." }, { status: 503 });
+}
+
 export async function GET() {
   const { response } = await requireApiSession();
   if (response) return response;
 
-  return Response.json(await listPayroll());
+  try {
+    return Response.json(await listPayroll());
+  } catch (error) {
+    if (error instanceof HrUnavailableError) return hrUnavailable(error);
+    throw error;
+  }
 }
 
 export async function POST(request: Request) {
@@ -36,6 +48,7 @@ export async function POST(request: Request) {
     await createPayrollEntry(parsed.data, session.user.id);
     return new Response(null, { status: 201 });
   } catch (error) {
+    if (error instanceof HrUnavailableError) return hrUnavailable(error);
     if (error instanceof PayrollError) {
       return Response.json({ error: error.message }, { status: 400 });
     }

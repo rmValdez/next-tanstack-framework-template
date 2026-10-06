@@ -24,7 +24,7 @@ export type CreatePayrollInput = z.infer<typeof createPayrollSchema>;
 export interface PayrollRow {
   id: string;
   period: string;
-  // From HR's published view; null if HR no longer lists the employee.
+  // From HR's API; null if HR no longer lists the employee.
   employee: { employeeNo: string; fullName: string; departmentName: string } | null;
   grossPay: string;
   deductions: string;

@@ -8,7 +8,7 @@ import { serverEnv } from "@/lib/config.server";
 import { ACCOUNTS_PROVIDER_ID } from "@/lib/sso";
 
 // exam has no passwords: every user signs in through accounts over OIDC, and this app
-// keeps a shadow user plus its own session in the exam schema of company_db.
+// keeps a shadow user plus its own session in exam_db.
 export const auth = betterAuth({
   appName: "Exam",
   database: prismaAdapter(examDb, {

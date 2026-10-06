@@ -25,27 +25,28 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 
 ## Where we are (2026-10-07)
 
-| Area                                                           | State                                                                                                                       |
-| :------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------- |
-| `accounts`, `worker`                                           | Built and verified                                                                                                          |
-| `hr`                                                           | Built: reference domain app (employees/departments, TanStack Table v9 + Form + Query, session API)                          |
-| `finance`                                                      | Built: payroll; reads employees through the view `hr_public.employee_directory_v1` (to be replaced by the HR API in step 1) |
-| `recruitment`, `attendance`, `exam`                            | Scaffolded from hr: landing, sign-in, dashboard, sign-out. `exam` still Next.js.                                            |
-| `crm`, `operations`, `analytics`, `collaboration`, `workspace` | Not created                                                                                                                 |
-| Data                                                           | **Still `company_db`** with one schema per domain (D13). Target: `<app>_db` per domain (D17).                               |
-| App-to-app tokens, global sign-out, events                     | Decided, not built                                                                                                          |
-| Checks                                                         | `pnpm dev` runs every app together, landing pages and SSO verified per app; type-check 21/21, lint 7/7, build 12/12         |
-| Docs                                                           | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                                 |
+| Area                                                           | State                                                                                                               |
+| :------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ |
+| `accounts`, `worker`                                           | Built and verified                                                                                                  |
+| `hr`                                                           | Built: reference domain app (employees/departments, TanStack Table v9 + Form + Query, session API)                  |
+| `finance`                                                      | Built: payroll; reads employees through HR's `/api/v1` with an accounts-issued app token                            |
+| `recruitment`, `attendance`, `exam`                            | Scaffolded from hr: landing, sign-in, dashboard, sign-out. `exam` still Next.js.                                    |
+| `crm`, `operations`, `analytics`, `collaboration`, `workspace` | Not created                                                                                                         |
+| Data                                                           | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                          |
+| App-to-app tokens (D18)                                        | Built: finance → HR via `@workspace/core/apis`                                                                      |
+| Global sign-out, events                                        | Decided, not built (roadmap steps 2 and 5)                                                                          |
+| Checks                                                         | `pnpm dev` runs every app together, landing pages and SSO verified per app; type-check 21/21, lint 7/7, build 12/12 |
+| Docs                                                           | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                         |
 
-Last code commit: `e4ccd80` (finance phase 7). Docs rewrite committed after it. Not pushed.
+Last commits: `53862db` docs rewrite, then roadmap step 1. Not pushed.
 
 ## Resume here
 
-Follow [docs/roadmap.md](docs/roadmap.md) in order. **Next: step 1** (one database per domain +
-Finance → HR API with client-credentials tokens). Everything needed is written there, including
-the researched `@better-auth/oauth-provider` 1.7.7 options and the exact `init.sql` to apply.
+Follow [docs/roadmap.md](docs/roadmap.md) in order. Step 1 (own databases + app-to-app tokens)
+is done. **Next: step 2, global sign-out** (D19): first verify what `@better-auth/oauth-provider`
+1.7.7 offers for back-channel logout (`oauthClient.backchannelLogoutUri` exists).
 
-Then: step 2 global sign-out → step 3 exam on TanStack Start → step 4 crm, operations, analytics,
+Then: step 3 exam on TanStack Start → step 4 crm, operations, analytics,
 collaboration, workspace → step 5 events. Feature work for recruitment/attendance etc. is paused by
 the user until those steps are done ("the idea is they are working and running").
 
@@ -59,9 +60,8 @@ no errors; type-check, lint, build pass; docs updated; commit (no Claude trailer
   values programmatically, change only the lines needed.
 - After secret changes: `pnpm --filter @workspace/accounts-db db:seed` (client secrets); if
   `ACCOUNTS_AUTH_SECRET` changed, `DELETE FROM jwks` in accounts_db (dev). Both done 2026-10-06.
-- The running Postgres volume (`next_tanstack_tpl_db`) has `accounts_db`, `company_db` (schemas
-  hr, hr_public, finance, …), `<app>_shadow` databases, roles `<app>_app`, and an unused old
-  `web_db`. `init.sql` only runs on a new volume; changes are applied by hand.
+- The running Postgres volume (`next_tanstack_tpl_db`) matches `init.sql`: `accounts_db`,
+  `<app>_db` + `<app>_shadow` per domain, roles `<app>_app`. `init.sql` only runs on a new volume; changes are applied by hand.
 - Infra containers: `next_tanstack_tpl_db`, `_rabbitmq`, `_mailpit` (docker compose).
 
 ## Documentation map
@@ -117,7 +117,10 @@ no Redis in v1 · hashed OAuth client secrets · email verification by link.
 - `signOut()` also ends the accounts session unless `disableRedirect: true`;
   `post_logout_redirect_uri` always ends in `/`, registered that way by the seed.
 - Schema generation: package `auth` (`pnpm auth:schema`), not `@better-auth/cli`.
-- Client credentials + resources (researched, not yet used): see roadmap step 1b.
+- App tokens: `oauthProvider` `resources` + `scopes`, seed `client_credentials` +
+  `clientCredentialsScopes` + `oauthClientResource` link; tokens requested with `resource`
+  are JWTs (`aud` = resource), without it opaque. Verify with
+  `@better-auth/oauth-provider/resource-client` `verifyBearerToken` (build log, step 1).
 - Distinct `advanced.cookiePrefix` per app; OAuth state cookie `maxAge: 600`.
 - `.env` secret changes: client secret → re-seed; `ACCOUNTS_AUTH_SECRET` → JWKS key unreadable
   (dev: `DELETE FROM jwks`). Restart apps after any `.env` change.

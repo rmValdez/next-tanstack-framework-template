@@ -8,7 +8,7 @@ first for the service map.
 | SSO sign-in (OIDC code + PKCE) for every domain app  | ✅ Built, verified for hr, finance, recruitment, attendance, exam |
 | Sign out of one app / sign out of app + accounts     | ✅ Built                                                          |
 | **Global sign-out** (every app loses its session)    | ❌ Required, not built ([roadmap](roadmap.md) step 2, D19)        |
-| **App-to-app calls** (finance → HR API)              | ❌ Decided, not built ([roadmap](roadmap.md) step 1, D18)         |
+| **App-to-app calls** (finance → HR API)              | ✅ Built (D18): client credentials, JWT, verified by HR           |
 | Sign-up, verification, reset, rate limits (accounts) | ✅ Built                                                          |
 
 Examples use `hr` (port 5010); every domain app works the same way with its own name, port and
@@ -117,7 +117,7 @@ automatically unless `disableRedirect: true`.
 
 ---
 
-## 5. App-to-app calls (planned, D18)
+## 5. App-to-app calls (D18)
 
 ```mermaid
 sequenceDiagram
@@ -133,8 +133,17 @@ sequenceDiagram
 ```
 
 - HR's `/api/v1/*` accepts only bearer tokens; HR's own UI keeps using session routes (`/api/employees`).
-- Accounts declares each owner API as a resource with `allowedScopes`; the seed links each calling
-  client to the resources it may use. Details: [roadmap](roadmap.md) step 1b.
+- One definition in `@workspace/core/apis`: `API_RESOURCES` (identifier = `aud`, scopes),
+  `API_GRANTS` (which app may call which API). Accounts declares the resources and scopes in
+  `oauthProvider`; the seed gives each calling client the `client_credentials` grant, its
+  `clientCredentialsScopes`, and an `oauthClientResource` link (required:
+  `enforcePerClientResources` defaults to true).
+- Owner: `apps/hr/src/lib/app-token.ts` (`requireAppToken`, JWKS verification, 401/403 with the
+  library's `WWW-Authenticate` challenge). Caller: `apps/finance/src/lib/hr-client.ts` (token
+  cache, one retry on 401, `HrUnavailableError` → 503 "HR is unavailable").
+- Verified: no token, garbage, or a token without `resource` (accounts then issues an opaque
+  token) → 401; HR client asking for the grant → `unauthorized_client`; unknown scope →
+  `invalid_scope`; salary never in the response.
 
 ---
 

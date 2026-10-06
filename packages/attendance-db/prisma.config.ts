@@ -11,8 +11,8 @@ export default defineConfig({
     // `prisma generate` doesn't connect, so a placeholder keeps it working without a .env
     // (CI, fresh clones). Commands that touch the database fail loudly on it instead.
     url: process.env.ATTENDANCE_DATABASE_URL || "postgresql://missing:missing@localhost:1/missing",
-    // attendance_app may not create databases, so `migrate dev` replays into a dedicated one. It
-    // needs ?schema=attendance too, or the replay lands in the shadow database's public schema.
+    // attendance_app may not create databases, so `migrate dev` replays into a dedicated one
+    // (attendance_shadow, created by docker/postgres/init.sql).
     shadowDatabaseUrl: process.env.ATTENDANCE_SHADOW_DATABASE_URL,
   },
 });

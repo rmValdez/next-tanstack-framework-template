@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           Welcome, {user.name.split(" ")[0]}
         </h2>
         <p className="text-sm text-slate-400">
-          HR owns the employee records in the <code>hr</code> schema of company_db.
+          HR owns the employee records in <code>hr_db</code>.
         </p>
       </div>
 

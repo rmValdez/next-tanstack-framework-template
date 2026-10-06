@@ -4,7 +4,7 @@ import { Card } from "@workspace/ui/card";
 import { requireAuth } from "@/lib/session";
 import { ACCOUNTS_PROVIDER_ID } from "@/lib/sso";
 
-// Scaffolded from apps/hr: sign-in, session and the attendance schema work; domain features
+// Scaffolded from apps/hr: sign-in, session and attendance_db work; domain features
 // come later (docs/roadmap.md). Use apps/hr as the reference.
 export default async function DashboardPage() {
   const { user, session } = await requireAuth("/dashboard");
@@ -30,8 +30,7 @@ export default async function DashboardPage() {
           Welcome, {user.name.split(" ")[0]}
         </h2>
         <p className="text-sm text-slate-400">
-          Attendance owns the <code>attendance</code> schema of company_db. Domain features come
-          later.
+          Attendance owns <code>attendance_db</code>. Domain features come later.
         </p>
       </div>
 
@@ -51,7 +50,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <p className="text-xs text-slate-400">Own data</p>
-            <p className="text-base font-semibold text-slate-100">company_db, schema attendance</p>
+            <p className="text-base font-semibold text-slate-100">attendance_db (own database)</p>
           </div>
         </Card>
       </div>

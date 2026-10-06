@@ -29,8 +29,8 @@ export default async function DashboardPage() {
           Welcome, {user.name.split(" ")[0]}
         </h2>
         <p className="text-sm text-slate-400">
-          Finance owns the <code>finance</code> schema of company_db and reads employees from
-          HR&apos;s published view. Record pay on the{" "}
+          Finance owns <code>finance_db</code> and reads employees through HR&apos;s API. Record pay
+          on the{" "}
           <Link href="/payroll" className="text-cyan-400 hover:text-cyan-300">
             Payroll
           </Link>{" "}
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <p className="text-xs text-slate-400">Own data</p>
-            <p className="text-base font-semibold text-slate-100">company_db, schema finance</p>
+            <p className="text-base font-semibold text-slate-100">finance_db (own database)</p>
           </div>
         </Card>
       </div>

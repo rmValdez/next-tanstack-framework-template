@@ -86,7 +86,8 @@ from `pnpm auth:schema` (package `auth`, not `@better-auth/cli`); regenerate rat
 ### Reading another domain's data
 
 Never import another domain's `-db` package. Call the owner's `/api/v1` with an app token
-([auth-flows.md](auth-flows.md#5-app-to-app-calls-planned-d18)); being built in roadmap step 1.
+([auth-flows.md](auth-flows.md#5-app-to-app-calls-d18)); `apps/finance/src/lib/hr-client.ts` is
+the pattern.
 
 ### A new email
 

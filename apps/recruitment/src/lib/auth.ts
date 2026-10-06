@@ -8,7 +8,7 @@ import { serverEnv } from "@/lib/config.server";
 import { ACCOUNTS_PROVIDER_ID } from "@/lib/sso";
 
 // recruitment has no passwords: every user signs in through accounts over OIDC, and this app
-// keeps a shadow user plus its own session in the recruitment schema of company_db.
+// keeps a shadow user plus its own session in recruitment_db.
 export const auth = betterAuth({
   appName: "Recruitment",
   database: prismaAdapter(recruitmentDb, {

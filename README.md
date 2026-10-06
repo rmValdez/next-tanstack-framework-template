@@ -10,10 +10,11 @@ interactive ones, TanStack Query/Table/Form throughout. Built with **Better Auth
   through their APIs or events.
 - `worker` runs background jobs (email today).
 
-> **State (2026-10-07):** `accounts`, `worker`, `hr` (reference app) and `finance` are built;
+> **State (2026-10-07):** `accounts`, `worker`, `hr` (reference app) and `finance` are built,
+> each domain on its own database, Finance calling HR's API with an accounts-issued app token;
 > `recruitment`, `attendance` and `exam` are scaffolded. Next: the [roadmap](docs/roadmap.md)
-> (separate databases, app-to-app tokens, global sign-out, exam on TanStack Start, new apps,
-> events). Contributors and AI sessions: start with [CLAUDE.md](CLAUDE.md).
+> (global sign-out, exam on TanStack Start, new apps, events). Contributors and AI sessions:
+> start with [CLAUDE.md](CLAUDE.md).
 
 ---
 

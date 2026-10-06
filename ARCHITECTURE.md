@@ -7,9 +7,10 @@ one application per business domain, and a background `worker`. Conventional app
 through their APIs or events.
 
 > **State (2026-10-07):** this page describes the agreed target (decisions D17–D20). Built today:
-> `accounts`, `worker`, `hr`, `finance`; `recruitment`, `attendance`, `exam` scaffolded (sign-in
-> only, `exam` still on Next.js). Domains still share `company_db` (one schema each) until
-> [roadmap](docs/roadmap.md) step 1. Progress: [build log](docs/build-log.md).
+> `accounts`, `worker`, `hr`, `finance`, each domain on its own database, Finance reading HR
+> through HR's API with an app token; `recruitment`, `attendance`, `exam` scaffolded (sign-in only,
+> `exam` still on Next.js). Next: global sign-out ([roadmap](docs/roadmap.md) step 2). Progress:
+> [build log](docs/build-log.md).
 
 ---
 
@@ -62,7 +63,7 @@ graph TD
     Browser --> ACC
     Browser --> HR & FIN & EXAM
     HR & FIN & REC & ATT & EXAM -->|"OIDC sign-in"| ACC
-    FIN -->|"GET /api/v1 with app token (planned)"| HR
+    FIN -->|"GET /api/v1 with app token"| HR
     ACC --> ACCDB
     ACC -->|"email jobs"| MQ --> WK --> MAIL
 ```
@@ -167,7 +168,7 @@ src/lib/            auth.ts, auth-client.ts, session.ts (requireAuth), api.ts (r
 5. No account enumeration on sign-up and reset.
 6. Database-checked sessions on every protected page and route handler.
 7. Database isolation per domain, enforced by Postgres roles.
-8. Scoped, audience-bound, short-lived app tokens for app-to-app calls (planned).
+8. Scoped, audience-bound, short-lived app tokens for app-to-app calls, verified with JWKS.
 9. Rate limiting in memory per process; move to shared storage before scaling out.
 10. Emails rendered worker-side with escaped values; auth links never logged in production.
 

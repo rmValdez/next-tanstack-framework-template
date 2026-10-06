@@ -1,5 +1,6 @@
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { accountsDb } from "@workspace/accounts-db";
+import { API_RESOURCES, API_SCOPES } from "@workspace/core/apis";
 import { MIN_PASSWORD_LENGTH } from "@workspace/core/env";
 import {
   accountsUrl,
@@ -90,9 +91,21 @@ export const auth = betterAuth({
       // Unauthenticated /oauth2/authorize requests are sent here with a signed query;
       // the auth client's oauthProviderClient() plugin resumes them after sign-in.
       loginPage: "/login",
-      // Required even though `web` is registered with skipConsent: any other client
-      // would otherwise be sent to a page that doesn't exist.
+      // Required even though every domain app is registered with skipConsent: any other
+      // client would otherwise be sent to a page that doesn't exist.
       consentPage: "/consent",
+      // OIDC scopes plus the scopes of the domain APIs (D18). Listing them here is what
+      // lets accounts issue them at all.
+      scopes: ["openid", "profile", "email", "offline_access", ...API_SCOPES],
+      // Domain APIs accounts issues app tokens for: the token's `aud` is the identifier and
+      // only the listed scopes are allowed. "overwrite" keeps the database in step with this
+      // config on every start; resources are code-defined, not edited by admins.
+      resources: Object.values(API_RESOURCES).map((resource) => ({
+        identifier: resource.identifier,
+        name: resource.name,
+        allowedScopes: Object.values(resource.scopes),
+      })),
+      resourceSeedMode: "overwrite",
     }),
     // Must stay last: lets server actions set cookies through next/headers.
     nextCookies(),
