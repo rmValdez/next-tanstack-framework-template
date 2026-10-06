@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/session";
 import { ACCOUNTS_PROVIDER_ID } from "@/lib/sso";
 
 // Scaffolded from apps/hr: sign-in, session and the attendance schema work; domain features
-// arrive in phase 9 (docs/implementation-plan.md). Use apps/hr as the reference.
+// come later (docs/roadmap.md). Use apps/hr as the reference.
 export default async function DashboardPage() {
   const { user, session } = await requireAuth("/dashboard");
 
@@ -30,8 +30,8 @@ export default async function DashboardPage() {
           Welcome, {user.name.split(" ")[0]}
         </h2>
         <p className="text-sm text-slate-400">
-          Attendance owns the <code>attendance</code> schema of company_db. Domain features arrive
-          in phase 9.
+          Attendance owns the <code>attendance</code> schema of company_db. Domain features come
+          later.
         </p>
       </div>
 

@@ -1,13 +1,18 @@
-# Implementation Plan
+# Build Log
 
-Build order for the template, phase by phase. Each phase ends with a check that must pass before
-the next one starts.
+What has been built, phase by phase, with the check that closed each phase and the gotchas found on
+the way. Work still ahead is in [roadmap.md](roadmap.md). Paths and names are as they were when the
+phase was built; later decisions ([decisions.md](decisions.md)) say what changed since.
 
-> **Status (2026-10-06):** phases 1–7 done (`hr` reference app, `finance` reading `hr_public`).
-> `recruitment`, `attendance` and `exam` are **scaffolded** from `hr` (sign-in, dashboard,
-> sign-out verified; no features). **Paused by decision:** no new domain features for now; the
-> next work is making sure everything runs together and the docs match (see "Resume here" in
-> [CLAUDE.md](../CLAUDE.md)). Events are designed ([D16](decisions.md#d16-domain-events-a-worker-process-per-domain-outbox-and-inbox)), not built.
+| Phase | What                                                                        | Date       |
+| :---- | :-------------------------------------------------------------------------- | :--------- |
+| 1–2   | Root tooling, shared packages (`core`, `ui`)                                | 2026-10-06 |
+| 3     | Database packages (`accounts-db`, `web-db`)                                 | 2026-10-06 |
+| 4     | `apps/accounts` (identity provider)                                         | 2026-10-06 |
+| 5     | `apps/worker` (email queue)                                                 | 2026-10-06 |
+| 6     | `web` → `apps/hr` on `company_db`, employees with TanStack Table/Form/Query | 2026-10-06 |
+| 6b    | `finance`, `recruitment`, `attendance`, `exam` scaffolded from `hr`         | 2026-10-06 |
+| 7     | `apps/finance` payroll reading HR's published view                          | 2026-10-06 |
 
 ---
 
@@ -78,7 +83,7 @@ The OAuth tables are generated from the plugin with the Better Auth CLI (`auth g
 `auth`; the old `@better-auth/cli` stopped at 1.4) via `pnpm auth:schema`, not hand-copied
 from philgeps, because 1.7.7 adds models (`oauthClientAssertion`, `oauthResource`) that 1.6 lacked.
 
-### `packages/web-db` (`@workspace/web-db`)
+### `packages/web-db` (`@workspace/web-db`, became `packages/hr-db` in phase 6)
 
 Same layout with only the Better Auth core models (`user`, `session`, `account`, `verification`)
 and `WEB_DATABASE_URL`. No seed: `web` users are created by the first sign-in.
@@ -177,6 +182,8 @@ Notes:
 
 ## Phase 6: `apps/hr` on `company_db` (reference domain app)
 
+> `company_db` is superseded by one database per domain (D17); the HR app itself stays.
+
 Replaces the generic `web` client planned earlier
 ([D15](decisions.md#d15-real-domain-apps-on-company_db-not-a-generic-example-app)). The sign-in code
 built for `web` carried over unchanged apart from names.
@@ -222,14 +229,31 @@ Open (designed later, not blocking): authorization beyond "signed in" (needs a r
 
 ---
 
+## Phase 6b: scaffolded `recruitment`, `attendance`, `exam` (2026-10-06)
+
+Generated from `hr` by a script (the recipe is in [adding-a-service.md](adding-a-service.md)):
+copy `apps/hr` without `src/features` and employee routes, copy `packages/hr-db` with only the
+Better Auth models, then register the app in `init.sql`, `.env`/`.env.example`, `core/urls.ts`,
+accounts `trustedOrigins` and seed `CLIENTS`, and `turbo.json`. `finance` was scaffolded the same
+way before phase 7.
+
+Verified: each app's landing page, `/sso/start`, SSO round-trip to `/dashboard`, route guard (307)
+and sign-out everywhere; all apps together under one `pnpm dev` (2026-10-06, no errors or warnings
+in the log); `pnpm type-check` 21/21, `pnpm lint` 7/7, `pnpm build` 12/12.
+
+`pnpm build` logs `Discovery fetch failed for "accounts"` when accounts isn't running: harmless,
+the apps read the discovery document at startup and the build still succeeds.
+
+---
+
 ## Phase 7: `apps/finance` (cross-domain read)
 
-| Area | Files |
-| :--- | :--- |
-| Grant | `packages/hr-db/prisma/migrations/*_grant_public_views_to_finance`: HR's own migration grants `finance_app` `USAGE` on `hr_public` and `SELECT` on its views (current and future). The owner decides who reads. |
+| Area         | Files                                                                                                                                                                                                                                |
+| :----------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grant        | `packages/hr-db/prisma/migrations/*_grant_public_views_to_finance`: HR's own migration grants `finance_app` `USAGE` on `hr_public` and `SELECT` on its views (current and future). The owner decides who reads.                      |
 | Data package | `packages/finance-db`: `schemas = ["finance", "hr_public"]`, `previewFeatures = ["views"]`, `view EmployeeDirectory` → `hr_public.employee_directory_v1`; `PayrollEntry` (employee id from HR, no FK, unique per employee and month) |
-| Domain API | `GET /api/employees` (read-only, from the view, terminated excluded), `GET/POST /api/payroll` |
-| UI | `/payroll`: TanStack Table (amount columns sorted as numbers), TanStack Form with the employee picker fed by HR's view |
+| Domain API   | `GET /api/employees` (read-only, from the view, terminated excluded), `GET/POST /api/payroll`                                                                                                                                        |
+| UI           | `/payroll`: TanStack Table (amount columns sorted as numbers), TanStack Form with the employee picker fed by HR's view                                                                                                               |
 
 Verified 2026-10-06:
 
@@ -240,56 +264,5 @@ Verified 2026-10-06:
 - ✅ HR renames an employee → Finance shows the new name on the next read (no copy to sync).
 - ✅ The finance migration created only `finance.*`; nothing in `hr_public`.
 
-Deferred to a design decision: **domain events between apps** (where consumers run). See the
-proposal in the phase 7 summary; recruitment (phase 8) is the first workflow that needs one.
-
-## Phase 8: `apps/recruitment`
-
-Paused. Event design is fixed in [D16](decisions.md#d16-domain-events-a-worker-process-per-domain-outbox-and-inbox):
-recruitment's hire writes the applicant change + an outbox row in one transaction;
-`apps/recruitment/src/worker.ts` relays it to `domain.events`; `apps/hr/src/worker.ts` consumes
-`recruitment.applicant.hired.v1` from `hr.domain-events` and creates the employee with an inbox row.
-Recruitment reads departments from a new `hr_public.department_directory_v1` (granted by HR's
-migration).
-
-Applicants, vacancies, pipeline. An "applicant hired" event makes HR create the employee (HR stays
-the only writer of `hr.employees`). Port 5014.
-
-## Phase 9: `apps/attendance` + `apps/realtime`
-
-Time entries in the `attendance` schema. `realtime` (Socket.IO, port 5017) authenticates sockets
-with an access token from `accounts` and fans out RabbitMQ events (clock-in) to HR and dashboards.
-Settles the [real-time design questions](company-stack.md#real-time-open-design-questions).
-Attendance on port 5015.
-
-## Phase 10: `apps/exam`
-
-Exams, questions, attempts, results. Choose Next.js or TanStack Start based on the exam-taking UI
-(live timers, proctoring events) and document the reason
-([D14](decisions.md#d14-nextjs-default-tanstack-libraries-tanstack-start-by-exception)). Port 5016.
-
-## Phase 11: Verification and documentation
-
-| Command / test                                                | Expectation                                                     |
-| :------------------------------------------------------------ | :-------------------------------------------------------------- |
-| `pnpm type-check`, `pnpm lint`, `pnpm build`                  | Pass for every app and package                                  |
-| Fresh clone: `docker compose up`, `pnpm db:setup`, `pnpm dev` | Every app starts and signs in                                   |
-| Role isolation                                                | Each `<domain>_app` is denied on other domains' private schemas |
-| Broker down                                                   | Sign-up still succeeds; the error is logged in accounts         |
-
-Docs: README, ARCHITECTURE, auth-flows, configuration, adding-a-service and deployment describe the
-domain apps; `docs/shared-database/` becomes the main data-architecture guide.
-
----
-
-## Estimated effort
-
-| Phase | Size                                           |
-| :---- | :--------------------------------------------- |
-| 1–2   | Small                                          |
-| 3     | Medium (Prisma 7 + plugin schema)              |
-| 4     | Large (most UI is ported, OAuth wiring is new) |
-| 5     | Small                                          |
-| 6     | Medium                                         |
-| 7–10  | Medium each                                    |
-| 11    | Medium                                         |
+Superseded later the same day: D17 replaces the `hr_public` view with an HR API call
+([roadmap](roadmap.md) step 1). Events were decided as D16.

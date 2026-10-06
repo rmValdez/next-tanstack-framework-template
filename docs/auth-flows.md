@@ -1,24 +1,30 @@
 # Authentication Flows
 
-How identity moves between services. Read [ARCHITECTURE.md](../ARCHITECTURE.md) first for the
-service map.
+How identity moves between `accounts` and the domain apps. Read [ARCHITECTURE.md](../ARCHITECTURE.md)
+first for the service map.
 
-> **Status:** the `accounts` side is built and verified (2026-10-06): authorize → `/login` with signed
-> query → sign-in resumes → code → token exchange (PKCE, `client_secret_basic`) → userinfo; tampered
-> query → `invalid_signature`. The `web` side is phase 6. Issuer is `http://localhost:5011/api/auth`;
-> ID tokens are signed EdDSA (Ed25519).
+| Flow                                                 | State (2026-10-07)                                                |
+| :--------------------------------------------------- | :---------------------------------------------------------------- |
+| SSO sign-in (OIDC code + PKCE) for every domain app  | ✅ Built, verified for hr, finance, recruitment, attendance, exam |
+| Sign out of one app / sign out of app + accounts     | ✅ Built                                                          |
+| **Global sign-out** (every app loses its session)    | ❌ Required, not built ([roadmap](roadmap.md) step 2, D19)        |
+| **App-to-app calls** (finance → HR API)              | ❌ Decided, not built ([roadmap](roadmap.md) step 1, D18)         |
+| Sign-up, verification, reset, rate limits (accounts) | ✅ Built                                                          |
+
+Examples use `hr` (port 5010); every domain app works the same way with its own name, port and
+cookie prefix.
 
 ---
 
 ## 1. Roles
 
-| Service    | OAuth role                         | Better Auth plugins                                        |
-| :--------- | :--------------------------------- | :--------------------------------------------------------- |
-| `accounts` | Authorization server / OIDC provider | `emailAndPassword`, `emailVerification`, `jwt`, `oauthProvider`, `nextCookies` |
-| `web`      | Relying party (OAuth client)        | `genericOAuth`, `nextCookies`                              |
+| Service                          | OAuth role                                                                   | Better Auth plugins                                                                |
+| :------------------------------- | :--------------------------------------------------------------------------- | :--------------------------------------------------------------------------------- |
+| `accounts`                       | Authorization server / OIDC provider                                         | `emailAndPassword`, `emailVerification`, `jwt`, `oauthProvider`, `nextCookies`     |
+| Domain apps (`hr`, `finance`, …) | Relying party (OAuth client); later also resource server for their `/api/v1` | `genericOAuth`, `nextCookies` (Next.js) or `tanstackStartCookies` (TanStack Start) |
 
-`accounts` holds the only passwords. `web` never sees one: it receives an authorization code,
-exchanges it for tokens server-to-server, and creates its own session.
+`accounts` holds the only passwords. A domain app never sees one: it receives an authorization
+code, exchanges it for tokens server-to-server, and creates its own session.
 
 ---
 
@@ -28,89 +34,114 @@ All paths are under each service's `/api/auth` base.
 
 ### accounts (provider)
 
-| Endpoint                                   | Method | Purpose                                                   |
-| :----------------------------------------- | :----- | :-------------------------------------------------------- |
-| `/.well-known/openid-configuration`         | GET    | OIDC discovery document. `web` reads endpoints from here. |
-| `/oauth2/authorize`                         | GET    | Starts the authorization-code flow.                       |
-| `/oauth2/token`                             | POST   | Exchanges a code (+ PKCE verifier) for tokens.            |
-| `/oauth2/userinfo`                          | GET    | Returns `sub`, `email`, `name` for an access token.       |
-| `/oauth2/end-session`                       | GET    | RP-initiated logout ("sign out everywhere").              |
-| `/oauth2/revoke`, `/oauth2/introspect`      | POST   | Token revocation and introspection.                       |
-| `/jwks`                                     | GET    | Public keys for verifying ID tokens.                      |
-| `/sign-in/email`, `/sign-up/email`          | POST   | Password sign-in and sign-up.                             |
-| `/verify-email`, `/send-verification-email` | GET/POST | Email verification and resend.                          |
-| `/request-password-reset`, `/reset-password` | POST  | Password reset.                                           |
+| Endpoint                                     | Method   | Purpose                                                           |
+| :------------------------------------------- | :------- | :---------------------------------------------------------------- |
+| `/.well-known/openid-configuration`          | GET      | OIDC discovery. Apps read endpoints from here.                    |
+| `/oauth2/authorize`                          | GET      | Starts the authorization-code flow.                               |
+| `/oauth2/token`                              | POST     | Code (+ PKCE verifier) → tokens; later also `client_credentials`. |
+| `/oauth2/userinfo`                           | GET      | `sub`, `email`, `name` for an access token.                       |
+| `/oauth2/end-session`                        | GET      | RP-initiated logout (ends the accounts session).                  |
+| `/oauth2/revoke`, `/oauth2/introspect`       | POST     | Token revocation and introspection.                               |
+| `/jwks`                                      | GET      | Public keys for verifying ID tokens and JWT access tokens.        |
+| `/sign-in/email`, `/sign-up/email`           | POST     | Password sign-in and sign-up.                                     |
+| `/verify-email`, `/send-verification-email`  | GET/POST | Email verification and resend.                                    |
+| `/request-password-reset`, `/reset-password` | POST     | Password reset.                                                   |
 
-### web (client)
+Issuer: `${NEXT_PUBLIC_ACCOUNTS_URL}/api/auth`. ID tokens are EdDSA (Ed25519).
 
-| Endpoint                    | Method | Purpose                                                    |
-| :-------------------------- | :----- | :--------------------------------------------------------- |
-| `/sign-in/oauth2`           | POST   | Starts the handshake with `providerId: "accounts"`.        |
-| `/callback/accounts`        | GET    | Redirect URI registered with `accounts`.                   |
-| `/get-session`, `/sign-out` | GET/POST | `web`'s own session.                                     |
+### Domain app (client)
+
+| Endpoint                    | Method   | Purpose                                                                                                                                                                                       |
+| :-------------------------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/sign-in/social`           | POST     | Starts the handshake with `{ provider: "accounts" }`. Better Auth 1.7 serves genericOAuth providers through the standard social endpoint; there is no `/sign-in/oauth2` and no client plugin. |
+| `/callback/accounts`        | GET      | Redirect URI registered with `accounts`.                                                                                                                                                      |
+| `/get-session`, `/sign-out` | GET/POST | The app's own session.                                                                                                                                                                        |
+
+App pages: `/` (landing), `/sso/start?redirectTo=…` (health pre-flight, then starts sign-in),
+`/dashboard` and other protected pages.
 
 ---
 
-## 3. Single Sign-On (first visit)
+## 3. Single sign-on (first visit)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor U as User
-    participant W as web :5010
+    participant H as hr :5010
     participant A as accounts :5011
 
-    U->>W: Click "Sign in"
-    W->>W: authClient.signIn.oauth2({ providerId: "accounts", callbackURL: "/dashboard" })
-    Note over W: Stores state + PKCE verifier (web.state cookie)
-    W-->>U: Redirect → A /api/auth/oauth2/authorize?client_id=web&code_challenge=…&state=…
+    U->>H: Open /dashboard (no session)
+    H-->>U: 307 → /sso/start?redirectTo=/dashboard
+    U->>H: /sso/start (server checks accounts /api/health)
+    H->>H: signIn.social({ provider: "accounts", callbackURL: "/dashboard" })
+    Note over H: Stores state + PKCE verifier (hr.state cookie, 10 min)
+    H-->>U: Redirect → A /api/auth/oauth2/authorize?client_id=hr&code_challenge=…&state=…
     U->>A: GET /oauth2/authorize
     A->>A: No accounts session
-    A-->>U: Redirect → /login?client_id=…&…&exp=…&sig=…
-    U->>A: Submit email + password on /login
+    A-->>U: Redirect → /login?client_id=…&exp=…&sig=…
+    U->>A: Email + password on /login
     Note over A: oauthProviderClient() attaches the signed query (oauth_query) to the sign-in request
-    A->>A: Verify signature, password, email verified → create accounts session
-    A-->>U: Continue authorization → redirect W /api/auth/callback/accounts?code=…&state=…
-    U->>W: GET /callback/accounts
-    W->>A: POST /oauth2/token (code, code_verifier, client_id, client_secret)
-    A-->>W: access_token, id_token (signed with JWKS), refresh_token
-    W->>A: GET /oauth2/userinfo (Bearer access_token)
-    A-->>W: { sub, email, name, email_verified }
-    W->>W: Upsert shadow user + account row in web_db, create web session
-    W-->>U: Redirect → /dashboard (web.session_token cookie)
+    A->>A: Verify signature, password, email verified → accounts session
+    A-->>U: Continue authorization → H /api/auth/callback/accounts?code=…&state=…
+    U->>H: GET /callback/accounts
+    H->>A: POST /oauth2/token (code, code_verifier; client_secret_basic)
+    A-->>H: access_token, id_token (EdDSA)
+    H->>A: GET /oauth2/userinfo
+    A-->>H: { sub, email, name, email_verified }
+    H->>H: Upsert shadow user + account link in hr_db, create hr session
+    H-->>U: Redirect → /dashboard (hr.session_token cookie)
 ```
 
-**Why the signed query matters:** the login page cannot be tricked into resuming an authorization
-request someone else crafted. `accounts` signs the original query when it redirects to `/login`, and
-rejects the sign-in if the signature or expiry does not verify. This replaces the manual
-`window.location.href = "/api/auth/oauth2/authorize?…"` redirect philgeps uses.
+**Why the signed query matters:** `/login` cannot be tricked into resuming an authorization request
+someone else crafted. `accounts` signs the original query when it redirects to `/login` and rejects
+the sign-in if the signature or expiry does not verify.
+
+**Returning visit:** if the accounts session exists, `/oauth2/authorize` redirects straight back with
+a code. Every domain app is a first-party client seeded with `skipConsent: true`, so it is one click.
 
 ---
 
-## 4. Returning visit (already signed in to accounts)
+## 4. Sign-out
 
-Steps 5–7 above are skipped: `/oauth2/authorize` finds the accounts session and redirects straight
-back to `web` with a code. To the user this is a one-click sign-in. `web` is a first-party client,
-seeded with `skipConsent: true`, so no consent screen appears.
+| Action                  | What happens today                                                                                                                                                                                             | Target (D19)                                                      |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| "Sign out" in an app    | `authClient.signOut({ disableRedirect: true })`: only that app's session ends                                                                                                                                  | Ends everything (global)                                          |
+| "Sign out everywhere"   | `authClient.signOut()`: the app's session ends, the browser goes to accounts `/oauth2/end-session` (ID token hint), the accounts session ends, accounts redirects back to the app (`post_logout_redirect_uri`) | Same, plus every other app's sessions end                         |
+| Other apps after either | ❌ Still signed in until their own session expires (7 days)                                                                                                                                                    | ✅ Signed out (back-channel logout, [roadmap](roadmap.md) step 2) |
+| Password reset          | accounts revokes all accounts sessions                                                                                                                                                                         | Also ends app sessions                                            |
+
+Gotchas (verified): Better Auth builds `post_logout_redirect_uri` with `new URL()`, so it always ends
+in `/`; the seed registers `${appUrl}/` to match exactly. `signOut()` follows the end-session URL
+automatically unless `disableRedirect: true`.
 
 ---
 
-## 5. Sign-out
+## 5. App-to-app calls (planned, D18)
 
-| Action                | What happens                                                                 |
-| :-------------------- | :--------------------------------------------------------------------------- |
-| Sign out of `web`     | `authClient.signOut()` deletes the `web` session only. Next sign-in is one click. |
-| Sign out everywhere   | `web` also redirects to `accounts` `/oauth2/end-session` with the ID token hint, which ends the accounts session and returns to `web`. |
-| Password reset        | `accounts` revokes all of the user's accounts sessions. Existing `web` sessions stay valid until they expire. |
+```mermaid
+sequenceDiagram
+    participant F as finance (server)
+    participant A as accounts
+    participant H as hr /api/v1
 
-> Back-channel logout (accounts telling every client to drop its sessions) is out of scope for v1.
+    F->>A: POST /oauth2/token grant_type=client_credentials, scope=hr:employees.read, resource=http://localhost:5010/api/v1 (Basic auth: finance client)
+    A-->>F: JWT access token (aud = HR resource, scope, exp)
+    F->>H: GET /api/v1/employees (Authorization: Bearer …)
+    H->>H: verifyBearerToken: JWKS signature, issuer, audience, required scope
+    H-->>F: employees (read model chosen by HR)
+```
+
+- HR's `/api/v1/*` accepts only bearer tokens; HR's own UI keeps using session routes (`/api/employees`).
+- Accounts declares each owner API as a resource with `allowedScopes`; the seed links each calling
+  client to the resources it may use. Details: [roadmap](roadmap.md) step 1b.
 
 ---
 
 ## 6. Flows owned by `accounts`
 
-These are ported from `next-betterAuth-monolith-template`. The difference is that email delivery
-goes through the queue instead of an in-process `sendEmail()`.
+Ported from `next-betterAuth-monolith-template`; email goes through the queue instead of an
+in-process `sendEmail()`.
 
 ### Sign-up and email verification
 
@@ -135,16 +166,15 @@ sequenceDiagram
 
 - Sign-in before verifying returns `EMAIL_NOT_VERIFIED`. `/login` offers a resend button.
 - A duplicate sign-up gets the same response as a new one, so emails cannot be enumerated.
-- If sign-up started from an OAuth handshake, the user finishes verification and then signs in
-  from `web` again.
+- If sign-up started from an app's sign-in, the user verifies and then signs in from that app again.
 
 ### Password reset
 
 1. `/forgot-password` → `POST /request-password-reset { email, redirectTo: "/reset-password" }`.
-2. `accounts` stores a token in `verification` (1 hour) and publishes a `reset-password` job.
-   The response is identical whether or not the email exists.
+2. `accounts` stores a token in `verification` (1 hour) and publishes a `reset-password` job. The
+   response is identical whether or not the email exists.
 3. The link hits `/reset-password/<token>` and redirects to `/reset-password?token=…`.
-4. `POST /reset-password { token, newPassword }` updates the hash and revokes all sessions.
+4. `POST /reset-password { token, newPassword }` updates the hash and revokes all accounts sessions.
 
 ### Rate limits
 
@@ -163,25 +193,26 @@ In-memory storage, per process. See [deployment.md](deployment.md) before runnin
 
 ## 7. Sessions and cookies
 
-| Service    | Cookie prefix | Session lifetime                 | Checked by                         |
-| :--------- | :------------ | :------------------------------- | :--------------------------------- |
-| `accounts` | `accounts`    | 7 days, refreshed daily on use   | `requireAuth()` in `accounts`      |
-| `web`      | `web`         | 7 days, refreshed daily on use   | `requireAuth()` in `web`           |
+| Service         | Cookie prefix                     | Session lifetime               | Checked by                                                            |
+| :-------------- | :-------------------------------- | :----------------------------- | :-------------------------------------------------------------------- |
+| `accounts`      | `accounts`                        | 7 days, refreshed daily on use | `requireAuth()` in accounts                                           |
+| Each domain app | its app name (`hr`, `finance`, …) | 7 days, refreshed daily on use | `requireAuth(path)` per page, `requireApiSession()` per route handler |
 
-- On `localhost`, both apps share one cookie jar (cookies ignore ports), so the prefixes are what
-  keep `accounts.session_token` and `web.session_token` apart.
-- Protected pages call `requireAuth()`, which checks the session against the database, not just the
-  cookie.
-- The OAuth `state` cookie on `web` gets a 10-minute max age, so a slow login on `accounts` doesn't
-  end in `state_mismatch` (a bug philgeps hit with the 5-minute default).
+- On `localhost` all apps share one cookie jar (cookies ignore ports), so the prefixes keep
+  `accounts.session_token`, `hr.session_token`, … apart.
+- Protected pages call `requireAuth(path)` themselves, not a layout (a layout doesn't know the path
+  to return to). A guarded page must not sit under a `loading.tsx`, or the redirect happens inside
+  the HTML stream (200) instead of a 307.
+- The OAuth `state` cookie gets a 10-minute max age, so a slow login doesn't end in
+  `state_mismatch` (philgeps hit this with the 5-minute default).
 
 ---
 
-## 8. User data in `web`
+## 8. User data in a domain app
 
-`web` stores a shadow `user` row keyed by its own id, linked to `accounts` through
-`account.providerId = "accounts"` and `account.accountId = <accounts user id>`.
+Each app stores a shadow `user` row keyed by its own id, linked to `accounts` through
+`account.providerId = "accounts"` and `account.accountId = <accounts user id>` (the OIDC `sub`).
 
-- `overrideUserInfo: true` refreshes name and email from `accounts` on every sign-in, so an email
-  change in `accounts` reaches `web` the next time the user signs in.
-- App features in `web` reference `user.id` from `web_db`, never the accounts id directly.
+- `overrideUserInfo: true` refreshes name and email from `accounts` on every sign-in.
+- Domain records reference the app's own `user.id`, never the accounts id directly. Business
+  identity (an HR employee, a finance payee) is separate from the login identity.

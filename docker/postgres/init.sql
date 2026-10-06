@@ -4,7 +4,7 @@
 -- accounts_db: identity (passwords, sessions, OAuth clients). Always its own database.
 -- company_db:  every business domain, one schema each. Postgres roles enforce that a
 --              domain writes only its own schema and reads others only through their
---              published <domain>_public views. See docs/shared-database/.
+--              published <domain>_public views (D13; replaced by one database per domain in roadmap step 1).
 
 CREATE DATABASE accounts_db;
 CREATE DATABASE company_db;
