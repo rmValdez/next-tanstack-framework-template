@@ -5,9 +5,23 @@ The template ships one client app (`web`). Real projects add more, for example `
 
 ---
 
+## Naming
+
+Every name derives from the app name. Databases use an underscore (a hyphenated Postgres name
+would need quoting in every SQL statement); npm packages use a hyphen.
+
+| App | Database package | Postgres database | Env var | Cookie prefix |
+| :--- | :--- | :--- | :--- | :--- |
+| `accounts` | `@workspace/accounts-db` | `accounts_db` | `ACCOUNTS_DATABASE_URL` | `accounts` |
+| `web` | `@workspace/web-db` | `web_db` | `WEB_DATABASE_URL` | `web` |
+| `hr` | `@workspace/hr-db` | `hr_db` | `HR_DATABASE_URL` | `hr` |
+| `<app>` | `@workspace/<app>-db` | `<app>_db` | `<APP>_DATABASE_URL` | `<app>` |
+
+---
+
 ## A new client app (signs in through accounts)
 
-Example: `admin` on port 5013.
+Example: `admin` on port 5013 (`@workspace/admin-db`, `admin_db`, `ADMIN_DATABASE_URL`).
 
 ### 1. Database package
 

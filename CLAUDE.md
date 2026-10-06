@@ -92,6 +92,8 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
 - Match the monolith's code style: comments explain *why*, Zod env parsed at import, server-only
   secrets in `config.server.ts`, never imported by client components.
 - Each service owns its database; services communicate only over HTTP/OIDC or the queue.
+- Naming per app `<app>`: package `@workspace/<app>-db`, Postgres database `<app>_db` (underscore,
+  e.g. `hr_db`), env `<APP>_DATABASE_URL`, cookie prefix `<app>`. Table in docs/adding-a-service.md.
 - Workspace packages export TypeScript source; Next apps use `transpilePackages`.
 - One root `.env`; Next apps load it with `dotenv -e ../../.env --` in their package scripts
   (`@next/env` in `next.config.ts` does not work: Next resets `process.env`).
