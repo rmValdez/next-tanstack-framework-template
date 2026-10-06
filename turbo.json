@@ -53,7 +53,7 @@
     "db:seed": { "cache": false, "dependsOn": ["db:deploy"] },
     "build": {
       "dependsOn": ["^build", "db:generate"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".output/**"]
     },
     "type-check": { "dependsOn": ["db:generate"] },
     "lint": {},

@@ -30,7 +30,8 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | `accounts`, `worker`                                           | Built and verified                                                                                                  |
 | `hr`                                                           | Built: reference domain app (employees/departments, TanStack Table v9 + Form + Query, session API)                  |
 | `finance`                                                      | Built: payroll; reads employees through HR's `/api/v1` with an accounts-issued app token                            |
-| `recruitment`, `attendance`, `exam`                            | Scaffolded from hr: landing, sign-in, dashboard, sign-out. `exam` still Next.js.                                    |
+| `recruitment`, `attendance`                                    | Scaffolded from hr (Next.js): landing, sign-in, dashboard, sign-out                                                 |
+| `exam`                                                         | Scaffolded on **TanStack Start** (reference for collaboration/workspace)                                            |
 | `crm`, `operations`, `analytics`, `collaboration`, `workspace` | Not created                                                                                                         |
 | Data                                                           | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                          |
 | App-to-app tokens (D18)                                        | Built: finance → HR via `@workspace/core/apis`                                                                      |
@@ -39,17 +40,14 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | Checks                                                         | `pnpm dev` runs every app together, landing pages and SSO verified per app; type-check 21/21, lint 7/7, build 12/12 |
 | Docs                                                           | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                         |
 
-Last commits: `53862db` docs rewrite, `97a9a1d` step 1, then step 2. Not pushed.
+Last commits: `97a9a1d` step 1, `8fede9f` step 2, then step 3. Not pushed.
 
 ## Resume here
 
-Follow [docs/roadmap.md](docs/roadmap.md) in order. Steps 1 (own databases + app-to-app tokens)
-and 2 (global sign-out) are done. **Next: step 3, exam on TanStack Start**: replace the Next.js
-copy in `apps/exam` with a TanStack Start app (reference: philgeps `apps/philgeps`), keeping
-port 5016, `exam_db`, the OAuth client, `/api/health` and `/api/backchannel-logout`.
-
-Then: step 4 crm, operations, analytics,
-collaboration, workspace → step 5 events. Feature work for recruitment/attendance etc. is paused by
+Follow [docs/roadmap.md](docs/roadmap.md) in order. Steps 1 (own databases + app-to-app tokens),
+2 (global sign-out) and 3 (exam on TanStack Start) are done. **Next: step 4**: scaffold `crm`,
+`operations`, `analytics` from `apps/hr` and `collaboration`, `workspace` from `apps/exam`
+(recipes in docs/adding-a-service.md; ports 5017–5021). Then step 5 events. Feature work for recruitment/attendance etc. is paused by
 the user until those steps are done ("the idea is they are working and running").
 
 Standing rule per step: one `pnpm dev` starts everything, each UI app reaches its landing page with
@@ -95,7 +93,7 @@ When code is built, update the docs to match and the state markers ("planned", "
 ## Fixed decisions (don't re-litigate)
 
 pnpm · Turborepo · Next.js 15.5 (not 16) for conventional apps · TanStack Start for exam,
-collaboration, workspace (D20) · TanStack Query/Table(v9)/Form(v1) · Prisma 7.x (not 8 RC) ·
+collaboration, workspace (D20) · TanStack Query/Table(v9)/Form(v1) · Zod 3 in Next apps, Zod 4 in TanStack Start apps · Prisma 7.x (not 8 RC) ·
 Better Auth 1.7.x + `@better-auth/oauth-provider` same version · OIDC as the authentication standard ·
 one database per domain `<app>_db`, `accounts_db` separate, no `admin_db` (HR) · no SQL across
 domains; owner APIs with app tokens; events later · global sign-out required · Zod · Tailwind 3 ·
@@ -135,7 +133,9 @@ Prisma errors by `error.code` not `instanceof` (bundled copies); no `loading.tsx
 (redirect would stream as 200); root script is `pnpm db:setup` (`pnpm setup` is built in); pin
 `prisma@^7`; TanStack Table v9 needs explicit `tableFeatures({...})` and ships agent docs in
 `node_modules/@tanstack/react-table/skills`; Bash heredocs with certain quote mixes fail in this
-shell: write scripts to files instead.
+shell: write scripts to files instead. TanStack Start: server-only code in `*.server.ts`, Zod 4,
+`routeTree.gen.ts` committed; every app gets auth via `getAuth()` (self-healing, see build log
+step 3).
 
 ## Conventions
 

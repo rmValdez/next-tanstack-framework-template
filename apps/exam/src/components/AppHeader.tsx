@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { GraduationCap } from "lucide-react";
 
 export function AppHeader({
@@ -11,7 +11,7 @@ export function AppHeader({
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900/60 px-6 backdrop-blur-md">
       <div className="flex items-center gap-6">
-        <Link href="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/20 text-cyan-400">
             <GraduationCap className="h-4 w-4" />
           </div>

@@ -5,7 +5,7 @@ closes it. What has been built so far, with its test results and gotchas, is in
 [build-log.md](build-log.md). Why each choice was made: [decisions.md](decisions.md).
 
 **Order (agreed 2026-10-06):** ~~1 database separation + app-to-app auth~~ ✅ → ~~2 global sign-out~~ ✅ →
-3 exam on TanStack Start → 4 new apps → 5 events.
+~~3 exam on TanStack Start~~ ✅ → 4 new apps → 5 events.
 
 **Standing rule for every step:** `pnpm dev` starts every app and each UI app reaches its landing
 page without errors; `pnpm type-check`, `pnpm lint` and `pnpm build` pass; commit at the end of the
@@ -26,18 +26,10 @@ Done 2026-10-07 with OIDC Back-Channel Logout. [Build log](build-log.md), step 2
 
 ---
 
-## Step 3: exam on TanStack Start
+## Step 3: exam on TanStack Start ✅
 
-- Replace `apps/exam` (currently a Next.js copy of hr) with a TanStack Start app on port 5016:
-  TanStack Router, Query, Form; Better Auth with `genericOAuth` and `tanstackStartCookies()`
-  (philgeps' `apps/philgeps/src/lib/auth.ts` is a working reference on Better Auth 1.6), same
-  `exam_db` package, `cookiePrefix: "exam"`, same OAuth client.
-- Landing page, `/sso/start` equivalent, protected dashboard, sign-out, `/api/health`.
-- `pnpm dev`, `build`, `type-check`, `lint` work for it (Vite/Nitro scripts, ESLint config).
-- This becomes the template for `collaboration` and `workspace`.
-
-**Done when:** exam runs under `pnpm dev` beside the Next apps, the SSO round-trip and global
-sign-out work exactly as for hr.
+Done 2026-10-07. [Build log](build-log.md), step 3. `apps/exam` is now the template for
+`collaboration` and `workspace`.
 
 ---
 

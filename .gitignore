@@ -24,3 +24,7 @@ next-env.d.ts
 coverage/
 npm-debug.log*
 .vercel
+
+# TanStack Start / Nitro build output
+.output/
+.tanstack/

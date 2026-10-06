@@ -338,3 +338,43 @@ Gotchas:
 - Ending _all_ of a user's sessions in an app (not only the one tied to the ended accounts `sid`)
   also signs out that user's other browsers in that app. Acceptable for now; tracking `sid` per
   local session would make it exact.
+
+---
+
+## Step 3: exam on TanStack Start (2026-10-07)
+
+| Area                  | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/exam`           | Rewritten on TanStack Start 1.168 (Vite 8, Nitro 3 beta, React 19), port 5016, same `exam_db`, OAuth client and cookie prefix. Routes: `index` (landing), `sso/start` (health pre-flight + browser handshake), `_app` (pathless layout, `beforeLoad` guard → `/sso/start?redirectTo=`), `_app/dashboard`, server routes `api/auth/$`, `api/health`, `api/backchannel-logout`. Session via `createServerFn` (`server/session.ts`) over `server/session.server.ts`. Tailwind 3 + `@workspace/ui` through PostCSS. ESLint flat config (typescript-eslint). |
+| Auth                  | Same genericOAuth config as the Next apps with `tanstackStartCookies()`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| All apps              | `getAuth()` from `@workspace/core/auth-instance` (`selfHealingAuth`) replaces the module-level `auth`: an instance created while accounts is unreachable is rebuilt on a later request.                                                                                                                                                                                                                                                                                                                                                                 |
+| `@workspace/core/env` | `parseEnv` typed structurally (works with Zod 3 and 4 schemas).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Repo                  | `turbo.json` build outputs include `.output/**`; `.output/` and `.tanstack/` ignored; `routeTree.gen.ts` committed and excluded from Prettier/ESLint.                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+Verified:
+
+- ✅ Dev and production (`node .output/server/index.mjs`): health 200, landing 200 with styles
+  (Tailwind preset classes present), unknown path 404, `/dashboard` signed out → 307 to
+  `/sso/start?redirectTo=%2Fdashboard`, SSO round-trip → `/dashboard` 200, sign-out → landing.
+- ✅ Under one `pnpm dev` with all apps: global sign-out from finance ends the exam session too
+  (exam log: back-channel token accepted). No errors or warnings in the dev log.
+- ✅ Race fixed: exam started with accounts down → `Provider not found`; accounts started later →
+  next sign-in works without restarting exam.
+- ✅ `type-check` 21/21, `lint` 7/7, `build` 12/12 (exam included).
+
+Gotchas:
+
+- **Discovery race (all apps, not Start-specific):** better-auth's genericOAuth fetches discovery
+  once at init; on failure the provider is skipped for the process's lifetime. Explicit endpoint
+  URLs would avoid discovery but lose ID-token verification, so the instance is rebuilt instead.
+- **Import protection:** a route file importing a module that imports
+  `@tanstack/react-start/server` fails the client build, even if only a server function uses it.
+  Server-only helpers go in `*.server.ts`.
+- **Zod:** the Nitro build deduplicated `zod` to the app's 3.25 copy, so better-auth's
+  `sessionSchema.loose()` (Zod 4) crashed at runtime (500 on every request). Start apps use Zod 4.
+- `postcss.config` must be ESM (`export default`) in a `"type": "module"` package (ESLint
+  rejected `module.exports`).
+- Vite dev serves `/src/styles.css` as JS unless the request looks like a stylesheet request; browsers
+  send `Accept: text/css`, so it is fine (curl without it shows `text/javascript`).
+- Nitro's Node server has no client-IP header locally; Better Auth warns that rate limiting falls back
+  to one shared bucket. Production: forward the IP and configure `advanced.ipAddress`.

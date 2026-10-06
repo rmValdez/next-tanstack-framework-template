@@ -34,7 +34,7 @@ different framework, chosen per app for a reason written down here.
 | `worker`        | Node.js (Express)  | none                       | Background jobs; no UI                                                                            |
 
 State on 2026-10-07: `accounts`, `hr`, `finance`, `worker` built; `recruitment`, `attendance` and
-`exam` scaffolded (`exam` still on Next.js until [roadmap](roadmap.md) step 3); `crm`,
+`exam` scaffolded (`exam` on TanStack Start since step 3); `crm`,
 `operations`, `analytics`, `collaboration`, `workspace` planned (step 4).
 
 ---

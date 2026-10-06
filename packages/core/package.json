@@ -8,6 +8,7 @@
     "./urls": "./src/urls.ts",
     "./apis": "./src/apis.ts",
     "./oidc": "./src/oidc.ts",
+    "./auth-instance": "./src/auth-instance.ts",
     "./redirect": "./src/redirect.ts",
     "./queue/types": "./src/queue/types.ts",
     "./queue/topology": "./src/queue/topology.ts",

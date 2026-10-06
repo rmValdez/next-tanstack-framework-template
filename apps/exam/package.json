@@ -2,39 +2,43 @@
   "name": "exam",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "dotenv -e ../../.env -- next dev -p 5016",
-    "build": "dotenv -e ../../.env -- next build",
-    "start": "dotenv -e ../../.env -- next start -p 5016",
+    "dev": "dotenv -e ../../.env -- vite dev --port 5016 --strictPort",
+    "build": "dotenv -e ../../.env -- vite build",
+    "start": "dotenv -e ../../.env -v PORT=5016 -- node .output/server/index.mjs",
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.104.1",
-    "@tanstack/react-table": "^9.2.6",
+    "@tanstack/react-router": "^1.170.41",
+    "@tanstack/react-start": "^1.168.60",
     "@workspace/core": "workspace:*",
     "@workspace/exam-db": "workspace:*",
     "@workspace/ui": "workspace:*",
     "better-auth": "1.7.7",
     "lucide-react": "^0.475.0",
-    "next": "15.5.27",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sonner": "^2.0.8",
-    "zod": "^3.25.76"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.7",
+    "@eslint/js": "^9.20.0",
     "@types/node": "^20.17.19",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^6.1.2",
     "autoprefixer": "^10.4.20",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.20.1",
-    "eslint-config-next": "15.5.27",
+    "nitro": "3.0.260903-beta",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.24.0",
+    "vite": "^8.3.3"
   }
 }

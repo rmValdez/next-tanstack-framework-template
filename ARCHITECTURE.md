@@ -8,29 +8,29 @@ through their APIs or events.
 
 > **State (2026-10-07):** this page describes the agreed target (decisions D17–D20). Built today:
 > `accounts`, `worker`, `hr`, `finance`, each domain on its own database, Finance reading HR
-> through HR's API with an app token; `recruitment`, `attendance`, `exam` scaffolded (sign-in only,
-> `exam` still on Next.js). Global sign-out works across all apps. Next: exam on TanStack Start ([roadmap](docs/roadmap.md)
-> step 3). Progress:
+> through HR's API with an app token, global sign-out; `recruitment`, `attendance` scaffolded on
+> Next.js and `exam` on TanStack Start (sign-in only). Next: crm, operations, analytics,
+> collaboration, workspace ([roadmap](docs/roadmap.md) step 4). Progress:
 > [build log](docs/build-log.md).
 
 ---
 
 ## 1. Applications
 
-| App             | Framework             | Port  | Owns                                                      | State                 |
-| :-------------- | :-------------------- | :---- | :-------------------------------------------------------- | :-------------------- |
-| `accounts`      | Next.js + Better Auth | 5011  | Users, passwords, sessions, OIDC clients and tokens, JWKS | Built                 |
-| `hr`            | Next.js               | 5010  | Employees, departments, positions, company administration | Built (reference app) |
-| `finance`       | Next.js               | 5013  | Payroll, accounting                                       | Built (payroll)       |
-| `recruitment`   | Next.js               | 5014  | Candidates, hiring                                        | Scaffolded            |
-| `attendance`    | Next.js               | 5015  | Attendance, schedules, time tracking                      | Scaffolded            |
-| `exam`          | TanStack Start        | 5016  | Exams, attempts, results                                  | Scaffolded on Next.js |
-| `crm`           | Next.js               | 5017* | Customers, contacts, leads                                | Planned               |
-| `operations`    | Next.js               | 5018* | Operational workflows                                     | Planned               |
-| `analytics`     | Next.js               | 5019* | Aggregated reporting data only                            | Planned               |
-| `collaboration` | TanStack Start        | 5020* | Communication, realtime collaboration                     | Planned               |
-| `workspace`     | TanStack Start        | 5021* | Projects, tasks, documents                                | Planned               |
-| `worker`        | Express + amqplib     | 5012  | Nothing persistent; sends email jobs                      | Built                 |
+| App             | Framework             | Port  | Owns                                                      | State                        |
+| :-------------- | :-------------------- | :---- | :-------------------------------------------------------- | :--------------------------- |
+| `accounts`      | Next.js + Better Auth | 5011  | Users, passwords, sessions, OIDC clients and tokens, JWKS | Built                        |
+| `hr`            | Next.js               | 5010  | Employees, departments, positions, company administration | Built (reference app)        |
+| `finance`       | Next.js               | 5013  | Payroll, accounting                                       | Built (payroll)              |
+| `recruitment`   | Next.js               | 5014  | Candidates, hiring                                        | Scaffolded                   |
+| `attendance`    | Next.js               | 5015  | Attendance, schedules, time tracking                      | Scaffolded                   |
+| `exam`          | TanStack Start        | 5016  | Exams, attempts, results                                  | Scaffolded (Start reference) |
+| `crm`           | Next.js               | 5017* | Customers, contacts, leads                                | Planned                      |
+| `operations`    | Next.js               | 5018* | Operational workflows                                     | Planned                      |
+| `analytics`     | Next.js               | 5019* | Aggregated reporting data only                            | Planned                      |
+| `collaboration` | TanStack Start        | 5020* | Communication, realtime collaboration                     | Planned                      |
+| `workspace`     | TanStack Start        | 5021* | Projects, tasks, documents                                | Planned                      |
+| `worker`        | Express + amqplib     | 5012  | Nothing persistent; sends email jobs                      | Built                        |
 
 \* proposed ports. Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP
 5003 (UI 5004). Framework reasons: [docs/company-stack.md](docs/company-stack.md).
@@ -155,7 +155,20 @@ Inside a Next domain app (`apps/hr` is the reference):
 src/app/            landing (/), sso/start, (app)/dashboard, (app)/<feature>, api/auth, api/health, api/<feature>
 src/features/<x>/   schema.ts (Zod, shared by form and API), server.ts (data access),
                     queries.ts (TanStack Query), <X>Table.tsx, Create<X>Form.tsx, <X>View.tsx
-src/lib/            auth.ts, auth-client.ts, session.ts (requireAuth), api.ts (requireApiSession),
+src/lib/            auth.ts (getAuth), auth-client.ts, session.ts (requireAuth), api.ts
+                    (requireApiSession), config.server.ts, sso.ts
+```
+
+Inside a TanStack Start app (`apps/exam` is the reference):
+
+```
+vite.config.ts      tanstackStart() + nitro() + react; port 5016
+src/router.tsx      router factory (QueryClient in context)
+src/routes/         __root.tsx (document shell), index.tsx (landing), sso/start.tsx,
+                    _app.tsx (pathless guarded layout, beforeLoad), _app/dashboard.tsx,
+                    api/auth/$.ts, api/health.ts, api/backchannel-logout.ts (server routes)
+src/server/         session.ts (createServerFn), session.server.ts (server-only helpers)
+src/lib/            same as the Next apps: auth.ts (getAuth, tanstackStartCookies), auth-client.ts,
                     config.server.ts, sso.ts
 ```
 

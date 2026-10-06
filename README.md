@@ -11,26 +11,26 @@ interactive ones, TanStack Query/Table/Form throughout. Built with **Better Auth
 - `worker` runs background jobs (email today).
 
 > **State (2026-10-07):** `accounts`, `worker`, `hr` (reference app) and `finance` are built,
-> each domain on its own database, Finance calling HR's API with an accounts-issued app token;
-> `recruitment`, `attendance` and `exam` are scaffolded. Next: the [roadmap](docs/roadmap.md)
-> (exam on TanStack Start, new apps, events); signing out anywhere already signs out everywhere. Contributors and AI sessions:
-> start with [CLAUDE.md](CLAUDE.md).
+> each domain on its own database, Finance calling HR's API with an app token; `recruitment` and
+> `attendance` are scaffolded on Next.js and `exam` on **TanStack Start**; signing out anywhere
+> signs out everywhere. Next: the [roadmap](docs/roadmap.md) (new apps, then events).
+> Contributors and AI sessions: start with [CLAUDE.md](CLAUDE.md).
 
 ---
 
 ## Apps
 
-| App                              | Framework                                     | URL                          | State                                                |
-| :------------------------------- | :-------------------------------------------- | :--------------------------- | :--------------------------------------------------- |
-| `hr`                             | Next.js                                       | http://localhost:5010        | Employees and departments (Table, Form, Query)       |
-| `accounts`                       | Next.js                                       | http://localhost:5011        | Sign-in, sign-up, verification, reset, OIDC provider |
-| `worker`                         | Node.js                                       | http://localhost:5012/health | Email jobs → SMTP                                    |
-| `finance`                        | Next.js                                       | http://localhost:5013        | Payroll                                              |
-| `recruitment`                    | Next.js                                       | http://localhost:5014        | Sign-in only                                         |
-| `attendance`                     | Next.js                                       | http://localhost:5015        | Sign-in only                                         |
-| `exam`                           | TanStack Start (Next.js until roadmap step 3) | http://localhost:5016        | Sign-in only                                         |
-| `crm`, `operations`, `analytics` | Next.js                                       | planned                      | Roadmap step 4                                       |
-| `collaboration`, `workspace`     | TanStack Start                                | planned                      | Roadmap step 4                                       |
+| App                              | Framework      | URL                          | State                                                |
+| :------------------------------- | :------------- | :--------------------------- | :--------------------------------------------------- |
+| `hr`                             | Next.js        | http://localhost:5010        | Employees and departments (Table, Form, Query)       |
+| `accounts`                       | Next.js        | http://localhost:5011        | Sign-in, sign-up, verification, reset, OIDC provider |
+| `worker`                         | Node.js        | http://localhost:5012/health | Email jobs → SMTP                                    |
+| `finance`                        | Next.js        | http://localhost:5013        | Payroll                                              |
+| `recruitment`                    | Next.js        | http://localhost:5014        | Sign-in only                                         |
+| `attendance`                     | Next.js        | http://localhost:5015        | Sign-in only                                         |
+| `exam`                           | TanStack Start | http://localhost:5016        | Sign-in only (TanStack Start reference app)          |
+| `crm`, `operations`, `analytics` | Next.js        | planned                      | Roadmap step 4                                       |
+| `collaboration`, `workspace`     | TanStack Start | planned                      | Roadmap step 4                                       |
 
 Tools: Mailpit http://localhost:5004 · RabbitMQ http://localhost:5002 (guest / guest).
 

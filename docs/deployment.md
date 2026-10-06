@@ -18,7 +18,8 @@ here has been deployed yet; this is the checklist the design implies.
 | SMTP                        | Resend, Postmark, SES, …                                                            | Provider                                        |
 
 Next apps build with `output: "standalone"` and run in their own container. TanStack Start apps build
-to a Nitro server output (step 3 decides the details). The worker runs `tsx src/index.ts`.
+with Vite + Nitro to `.output/` and run with `node .output/server/index.mjs` (`PORT` sets the port).
+The worker runs `tsx src/index.ts`.
 
 ---
 
@@ -48,6 +49,9 @@ to a Nitro server output (step 3 decides the details). The worker runs `tsx src/
 - [ ] `trustedOrigins` lists exactly the deployed app URLs.
 - [ ] Global sign-out (D19) works across all deployed apps.
 - [ ] Rate-limit storage moved off memory if any app runs more than one instance.
+- [ ] The proxy forwards the client IP, and each app sets `advanced.ipAddress.ipAddressHeaders`
+      (or `trustedProxies`); otherwise Better Auth rate-limits all clients in one shared bucket
+      (it warns about this on the TanStack Start/Nitro server).
 
 ### Email
 

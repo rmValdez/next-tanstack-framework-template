@@ -197,20 +197,20 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 - **Date:** 2026-10-06.
 - **Chosen:**
 
-  | App             | Framework          | Responsibility                                                | State                                    |
-  | :-------------- | :----------------- | :------------------------------------------------------------ | :--------------------------------------- |
-  | `accounts`      | Next.js            | Identity, authentication, OIDC                                | Built                                    |
-  | `hr`            | Next.js            | Employees, departments, positions, **company administration** | Built (reference app)                    |
-  | `finance`       | Next.js            | Payroll, accounting                                           | Built (payroll)                          |
-  | `recruitment`   | Next.js            | Candidates, hiring                                            | Scaffolded                               |
-  | `attendance`    | Next.js            | Attendance, schedules, time tracking                          | Scaffolded                               |
-  | `exam`          | **TanStack Start** | Exams, timed / live assessment                                | Scaffolded on Next.js; convert in step 3 |
-  | `crm`           | Next.js            | Customers, contacts, leads                                    | Planned (step 4)                         |
-  | `operations`    | Next.js            | Operational workflows                                         | Planned (step 4)                         |
-  | `analytics`     | Next.js            | Reporting, dashboards; owns aggregated data only              | Planned (step 4)                         |
-  | `collaboration` | **TanStack Start** | Realtime collaboration, communication                         | Planned (step 4)                         |
-  | `workspace`     | **TanStack Start** | Projects, tasks, documents                                    | Planned (step 4)                         |
-  | `worker`        | Node.js (Express)  | Background jobs, email, scheduled work                        | Built (email)                            |
+  | App             | Framework          | Responsibility                                                | State                                 |
+  | :-------------- | :----------------- | :------------------------------------------------------------ | :------------------------------------ |
+  | `accounts`      | Next.js            | Identity, authentication, OIDC                                | Built                                 |
+  | `hr`            | Next.js            | Employees, departments, positions, **company administration** | Built (reference app)                 |
+  | `finance`       | Next.js            | Payroll, accounting                                           | Built (payroll)                       |
+  | `recruitment`   | Next.js            | Candidates, hiring                                            | Scaffolded                            |
+  | `attendance`    | Next.js            | Attendance, schedules, time tracking                          | Scaffolded                            |
+  | `exam`          | **TanStack Start** | Exams, timed / live assessment                                | Scaffolded on TanStack Start (step 3) |
+  | `crm`           | Next.js            | Customers, contacts, leads                                    | Planned (step 4)                      |
+  | `operations`    | Next.js            | Operational workflows                                         | Planned (step 4)                      |
+  | `analytics`     | Next.js            | Reporting, dashboards; owns aggregated data only              | Planned (step 4)                      |
+  | `collaboration` | **TanStack Start** | Realtime collaboration, communication                         | Planned (step 4)                      |
+  | `workspace`     | **TanStack Start** | Projects, tasks, documents                                    | Planned (step 4)                      |
+  | `worker`        | Node.js (Express)  | Background jobs, email, scheduled work                        | Built (email)                         |
 
 - **Rules:** separate apps by business domain; independent apps first, microservices only when
   justified; shared **technical** packages are fine (`ui`, `core`, auth/OIDC client helpers), shared

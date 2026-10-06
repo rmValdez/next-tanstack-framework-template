@@ -1,13 +1,13 @@
 import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getAuth, type Auth } from "@/lib/auth";
 
-export type CurrentSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+export type CurrentSession = NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 
 // Cached per request, so a layout and its page can both ask without two database reads.
 export const getCurrentSession = cache(async () => {
-  return auth.api.getSession({ headers: await headers() });
+  return (await getAuth()).api.getSession({ headers: await headers() });
 });
 
 // Verifies against hr_db rather than trusting cookie presence. Without a session here

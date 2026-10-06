@@ -1,8 +1,9 @@
-import Link from "next/link";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowRight } from "lucide-react";
+import { z } from "zod";
 import { Button } from "@workspace/ui/button";
 import { AppHeader } from "@/components/AppHeader";
-import { getCurrentSession } from "@/lib/session";
+import { getSessionFn } from "@/server/session";
 
 // Codes Better Auth appends as ?error= when the OAuth callback fails.
 const ERROR_MESSAGES: Record<string, string> = {
@@ -12,12 +13,15 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_code: "The sign-in could not be completed. Please try again.",
 };
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const [session, { error }] = await Promise.all([getCurrentSession(), searchParams]);
+export const Route = createFileRoute("/")({
+  validateSearch: z.object({ error: z.string().optional() }),
+  loader: () => getSessionFn(),
+  component: HomePage,
+});
+
+function HomePage() {
+  const session = Route.useLoaderData();
+  const { error } = Route.useSearch();
   const errorMessage = error
     ? (ERROR_MESSAGES[error] ?? "Sign-in failed. Please try again.")
     : null;
@@ -26,7 +30,7 @@ export default async function HomePage({
     <div className="flex flex-1 flex-col">
       <AppHeader>
         {session ? (
-          <Link href="/dashboard">
+          <Link to="/dashboard">
             <Button variant="ghost" className="text-xs md:text-sm">
               Dashboard
             </Button>
@@ -50,20 +54,32 @@ export default async function HomePage({
             Exams, questions, attempts and results. Sign in with your company account.
           </p>
           <div className="flex justify-center pt-2">
-            <Link
-              href={session ? "/dashboard" : "/sso/start?redirectTo=%2Fdashboard"}
-              className="w-full sm:w-auto"
-            >
-              <Button fullWidth className="h-12 px-8 text-base">
-                {session ? "Go to dashboard" : "Sign in"} <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            {session ? (
+              <Link to="/dashboard" className="w-full sm:w-auto">
+                <Button fullWidth className="h-12 px-8 text-base">
+                  Go to dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link
+                to="/sso/start"
+                search={{ redirectTo: "/dashboard" }}
+                className="w-full sm:w-auto"
+              >
+                <Button fullWidth className="h-12 px-8 text-base">
+                  Sign in <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
 
       <footer className="mt-auto border-t border-slate-900 px-6 py-8 text-center text-xs text-slate-500">
-        <p>Next.js 15 · TanStack Query · Better Auth (OIDC client) · Prisma, own database.</p>
+        <p>
+          TanStack Start · TanStack Router and Query · Better Auth (OIDC client) · Prisma, own
+          database.
+        </p>
       </footer>
     </div>
   );
