@@ -47,8 +47,8 @@ export default async function HomePage({
             <span className="text-gradient">Finance</span>
           </h1>
           <p className="mx-auto max-w-2xl text-base text-slate-400 sm:text-lg">
-            Payroll, budgets and transactions. Reads employee data from the view HR publishes. Sign in
-            with your company account.
+            Payroll, budgets and transactions. Reads employee data from the view HR publishes. Sign
+            in with your company account.
           </p>
           <div className="flex justify-center pt-2">
             <Link

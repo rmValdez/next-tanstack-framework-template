@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/cn";
 
-const LINKS = [{ href: "/dashboard", label: "Dashboard" }];
+const LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/payroll", label: "Payroll" },
+];
 
 export function AppNav() {
   const pathname = usePathname();

@@ -225,9 +225,24 @@ Open (designed later, not blocking): authorization beyond "signed in" (needs a r
 
 ## Phase 7: `apps/finance` (cross-domain read)
 
-Role `finance_app`, schema `finance`, `packages/finance-db` with `schemas = ["finance", "hr_public"]`
-reading `employee_directory_v1` as a Prisma `view`. Minimal payroll records keyed by HR's employee
-id (no foreign key). First RabbitMQ domain event between domains. Port 5013.
+| Area | Files |
+| :--- | :--- |
+| Grant | `packages/hr-db/prisma/migrations/*_grant_public_views_to_finance`: HR's own migration grants `finance_app` `USAGE` on `hr_public` and `SELECT` on its views (current and future). The owner decides who reads. |
+| Data package | `packages/finance-db`: `schemas = ["finance", "hr_public"]`, `previewFeatures = ["views"]`, `view EmployeeDirectory` → `hr_public.employee_directory_v1`; `PayrollEntry` (employee id from HR, no FK, unique per employee and month) |
+| Domain API | `GET /api/employees` (read-only, from the view, terminated excluded), `GET/POST /api/payroll` |
+| UI | `/payroll`: TanStack Table (amount columns sorted as numbers), TanStack Form with the employee picker fed by HR's view |
+
+Verified 2026-10-06:
+
+- ✅ Finance lists HR's employees through the view; `finance_app` cannot write through it
+  (`cannot update view`) and still cannot read `hr.*`.
+- ✅ Payroll create → 201; same employee and month → 409; deductions > gross → 400; an id HR never
+  issued → 400; an employee HR marked terminated → 400.
+- ✅ HR renames an employee → Finance shows the new name on the next read (no copy to sync).
+- ✅ The finance migration created only `finance.*`; nothing in `hr_public`.
+
+Deferred to a design decision: **domain events between apps** (where consumers run). See the
+proposal in the phase 7 summary; recruitment (phase 8) is the first workflow that needs one.
 
 ## Phase 8: `apps/recruitment`
 

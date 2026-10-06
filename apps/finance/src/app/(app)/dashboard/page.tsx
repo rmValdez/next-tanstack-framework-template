@@ -1,11 +1,10 @@
+import Link from "next/link";
 import { KeyRound, Database } from "lucide-react";
 import { financeDb } from "@workspace/finance-db";
 import { Card } from "@workspace/ui/card";
 import { requireAuth } from "@/lib/session";
 import { ACCOUNTS_PROVIDER_ID } from "@/lib/sso";
 
-// Scaffolded from apps/hr: sign-in, session and the finance schema work; domain features
-// arrive in phase 7 (docs/implementation-plan.md). Use apps/hr as the reference.
 export default async function DashboardPage() {
   const { user, session } = await requireAuth("/dashboard");
 
@@ -30,8 +29,12 @@ export default async function DashboardPage() {
           Welcome, {user.name.split(" ")[0]}
         </h2>
         <p className="text-sm text-slate-400">
-          Finance owns the <code>finance</code> schema of company_db. Domain features arrive in
-          phase 7.
+          Finance owns the <code>finance</code> schema of company_db and reads employees from
+          HR&apos;s published view. Record pay on the{" "}
+          <Link href="/payroll" className="text-cyan-400 hover:text-cyan-300">
+            Payroll
+          </Link>{" "}
+          page.
         </p>
       </div>
 

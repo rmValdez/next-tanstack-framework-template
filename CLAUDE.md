@@ -47,8 +47,9 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
   No Claude co-author trailers in commits.
 - Ports: infra 5000–5004; apps 5010 hr, 5011 accounts, 5012 worker, 5013 finance,
   5014 recruitment, 5015 attendance, 5016 exam, 5017 realtime.
-- **Next step:** phase 7 of [docs/implementation-plan.md](docs/implementation-plan.md) (`apps/finance`):
-  `finance` schema + role, reads `hr_public.employee_directory_v1`, copies `apps/hr`'s structure.
+- Phase 7 (finance payroll reading `hr_public`) done and verified. **Next step:** decide where
+  domain-event consumers run (proposal: a `src/worker.ts` per domain app, run with `tsx`, own DB
+  role), then phase 8 (`apps/recruitment`, "applicant hired" → HR).
 
 ## Documentation map
 
@@ -98,6 +99,9 @@ no Redis in v1 · OAuth client secrets hashed (plugin default) · email verifica
 - Root script is `pnpm db:setup` (`pnpm setup` is a pnpm built-in). Pin `prisma@^7` (`latest` is 8 RC).
 - On localhost all apps share a cookie jar, so set distinct `advanced.cookiePrefix` (`accounts`, `hr`, ...).
 - Give each app's OAuth state cookie `maxAge: 600` (philgeps' `state_mismatch` fix).
+- Changing `.env` secrets: a new `<APP>_OAUTH_CLIENT_SECRET` needs `pnpm db:seed` (else
+  `invalid client_secret`); a new `ACCOUNTS_AUTH_SECRET` makes the stored JWKS key undecryptable
+  (dev fix: `DELETE FROM jwks` in accounts_db). Restart the app after any `.env` change.
 - Issuer is `${NEXT_PUBLIC_ACCOUNTS_URL}/api/auth`; ID tokens are EdDSA (Ed25519). A failed client
   auth at `/oauth2/token` consumes the authorization code.
 

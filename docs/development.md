@@ -91,8 +91,9 @@ Components in `packages/ui` are used by both Next apps. Tailwind in each app sca
 | Symptom                                  | Likely cause / fix                                                     |
 | :--------------------------------------- | :--------------------------------------------------------------------- |
 | App exits with `Invalid server environment variables` | A variable in `.env` is missing or too short; the message lists each one. |
-| `invalid_redirect_uri` on sign-in        | `NEXT_PUBLIC_WEB_URL` changed without re-seeding. Run `pnpm db:seed`.  |
-| `invalid_client` at the token step       | `WEB_OAUTH_CLIENT_SECRET` differs from what was seeded. Re-seed.       |
+| `invalid_redirect_uri` on sign-in        | `NEXT_PUBLIC_<APP>_URL` changed without re-seeding. Run `pnpm db:seed`. |
+| `invalid_client` / `invalid client_secret` at the token step (callback ends in `error=invalid_code`) | `<APP>_OAUTH_CLIENT_SECRET` in `.env` differs from what was seeded. Run `pnpm db:seed` (it updates every client from `.env`). |
+| accounts log: `Failed to decrypt private key` (token step returns 500) | `ACCOUNTS_AUTH_SECRET` changed; the stored ID-token signing key was encrypted with the old one. In development: `DELETE FROM jwks` in `accounts_db`; a new key is generated on the next request. In production, rotate the key instead of changing the secret. |
 | `state_mismatch` after login             | Two sign-in attempts overwrote each other's state cookie, or a login took over 10 minutes. Retry once. |
 | `invalid_signature` on `/login`          | The login URL was edited or expired. Start sign-in again from `web`.   |
 | No email in Mailpit                      | Worker not running, or RabbitMQ down. Check http://localhost:5012/health and the accounts log. |
