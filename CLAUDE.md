@@ -41,13 +41,13 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | Checks                                                                        | One `pnpm dev` runs all 12 services; SSO + global sign-out verified across all 10 domain apps; type-check 36/36, lint 12/12, build 22/22 |
 | Docs                                                                          | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                                              |
 
-Last commits: `97a9a1d` step 1, `8fede9f` step 2, `ef01c30` step 3, then step 4. Not pushed.
+Last commits: `97a9a1d` step 1, `8fede9f` step 2, `ef01c30` step 3, then step 4. Pushed.
 
 ## Stopping point (2026-10-07)
 
 The user stopped here and will come back later. State at the stop:
 
-- Roadmap steps 1–4 done, last commit `729c2e0`, working tree clean, nothing pushed.
+- Roadmap steps 1–4 done, working tree clean, everything pushed to `origin/main` (2026-10-07).
 - No dev servers running. Docker containers (`next_tanstack_tpl_db`, `_rabbitmq`, `_mailpit`) and
   their volumes keep the data: all `<app>_db` databases migrated, HR seeded, accounts seeded with
   10 OAuth clients.
@@ -58,9 +58,8 @@ The user stopped here and will come back later. State at the stop:
      `docker compose up -d`, `pnpm db:setup`, `pnpm dev`, then the platform check (all apps healthy,
      SSO into each, global sign-out). Never run since the switch to per-app databases; the
      current volume was migrated by hand.
-  2. Push the commits to GitHub (`origin/main`).
-  3. Roadmap step 5: domain events (D16), the first real features.
-  4. Wire `ACCESS_TOKEN_EXPIRY` / `REFRESH_TOKEN_EXPIRY` from `.env` (ask what they control).
+  2. Roadmap step 5: domain events (D16), the first real features.
+  3. Wire `ACCESS_TOKEN_EXPIRY` / `REFRESH_TOKEN_EXPIRY` from `.env` (ask what they control).
 - Not designed yet: roles/permissions per app, realtime, Dockerfiles/CI.
 
 ## Resume here
