@@ -37,29 +37,26 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | Data                                                                          | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                                               |
 | App-to-app tokens (D18)                                                       | Built: finance → HR via `@workspace/core/apis`                                                                                           |
 | Global sign-out (D19)                                                         | Built: OIDC back-channel logout, `@workspace/core/oidc`, one Sign out button                                                             |
-| Events                                                                        | Decided, not built (roadmap step 5)                                                                                                      |
-| Checks                                                                        | One `pnpm dev` runs all 12 services; SSO + global sign-out verified across all 10 domain apps; type-check 36/36, lint 12/12, build 22/22 |
-| Docs                                                                          | Rewritten 2026-10-07 for the final architecture; state markers say what is built vs planned                                              |
+| Boundary enforcement (D21)                                                    | Built: ESLint `no-restricted-imports` in all 12 apps locks each app to its own `-db` package only; negative test verified |
+| Fresh-setup check                                                             | Verified 2026-10-07 from empty volumes (`docker compose down -v`, `pnpm db:setup`, all 12 services healthy)                              |
+| Events                                                                        | Decided (D16); to be implemented after bounded-context consolidation                                                                     |
+| Checks                                                                        | One `pnpm dev` runs all 12 services; type-check 36/36, lint 12/12, build 22/22 all passing                                                |
+| Docs                                                                          | Updated with D21 bounded contexts architecture and boundary rules                                                                         |
 
-Last commits: `97a9a1d` step 1, `8fede9f` step 2, `ef01c30` step 3, then step 4. Pushed.
+Last commits: `9578f9b` (D21 docs), `d625361` (ESLint isolation rules). Pushed.
 
-## Stopping point (2026-10-07)
+## Current focus
 
-The user stopped here and will come back later. State at the stop:
+We are executing the production architecture roadmap agreed under D21:
+1. **Database ownership enforcement:** ✅ Done (automated via ESLint).
+2. **6 Bounded-Context consolidation:** Next step.
+   - Consolidate `apps/hr`, `apps/recruitment`, `apps/attendance` → `apps/people` (:5010) and `packages/people-db`.
+   - Consolidate `apps/crm`, `apps/operations` → `apps/business` (:5017) and `packages/business-db`.
+   - Consolidate `apps/collaboration`, `apps/workspace` → `apps/workplace` (:5020) and `packages/workplace-db`.
+   - Preserve `apps/exam` as the isolated learning context on TanStack Start (:5016).
+3. **Cross-context domain events:** RabbitMQ Transactional Outbox + Inbox for real cross-context flows
+   (e.g. `people.employee.created.v1` → `Finance`, `Analytics`).
 
-- Roadmap steps 1–4 done, working tree clean, everything pushed to `origin/main` (2026-10-07).
-- No dev servers running. Docker containers (`next_tanstack_tpl_db`, `_rabbitmq`, `_mailpit`) and
-  their volumes keep the data: all `<app>_db` databases migrated, HR seeded, accounts seeded with
-  10 OAuth clients.
-- To bring everything back: `docker compose up -d`, then `pnpm dev` (12 services, ports
-  5010–5021), sign in on any app with `admin@example.com` / `password123`.
-- **First thing on return:** ask the user which of these to do; do not start any unprompted:
-  1. **Fresh-setup test** (recommended first): `docker compose down -v` (wipes local test data),
-     `docker compose up -d`, `pnpm db:setup`, `pnpm dev`, then the platform check (all apps healthy,
-     SSO into each, global sign-out). Never run since the switch to per-app databases; the
-     current volume was migrated by hand.
-  2. Roadmap step 5: domain events (D16), the first real features.
-  3. Wire `ACCESS_TOKEN_EXPIRY` / `REFRESH_TOKEN_EXPIRY` from `.env` (ask what they control).
 - Not designed yet: roles/permissions per app, realtime, Dockerfiles/CI.
 
 ## Resume here
