@@ -11,10 +11,10 @@ The Next.js recipe below is how `finance`, `recruitment` and `attendance` were s
 Every name derives from the app name. Databases use an underscore (a hyphenated Postgres name needs
 quoting everywhere); npm packages use a hyphen.
 
-| App     | DB package            | Database   | Role        | Env prefix | Cookie prefix | OAuth client id |
-| :------ | :-------------------- | :--------- | :---------- | :--------- | :------------ | :-------------- |
-| `hr`    | `@workspace/hr-db`    | `hr_db`    | `hr_app`    | `HR_`      | `hr`          | `hr`            |
-| `<app>` | `@workspace/<app>-db` | `<app>_db` | `<app>_app` | `<APP>_`   | `<app>`       | `<app>`         |
+| App      | DB package             | Database    | Role         | Env prefix | Cookie prefix | OAuth client id |
+| :------- | :--------------------- | :---------- | :----------- | :--------- | :------------ | :-------------- |
+| `people` | `@workspace/people-db` | `people_db` | `people_app` | `PEOPLE_`  | `people`      | `people`        |
+| `<app>`  | `@workspace/<app>-db`  | `<app>_db`  | `<app>_app`  | `<APP>_`   | `<app>`       | `<app>`         |
 
 `accounts` is the exception: `accounts_db`, connected as `postgres` in development.
 
@@ -30,7 +30,7 @@ Example: `crm` on port 5017.
   `CREATE DATABASE crm_db OWNER crm_app;`, `CREATE DATABASE crm_shadow OWNER crm_app;`,
   `REVOKE CONNECT ON DATABASE crm_db, crm_shadow FROM PUBLIC;`. On an existing volume, run the same
   statements by hand.
-- Copy `packages/hr-db` → `packages/crm-db` **without** `node_modules`, `prisma/generated`,
+- Copy `packages/people-db` → `packages/crm-db` **without** `node_modules`, `prisma/generated`,
   `prisma/migrations`, `prisma/seed.ts`. Then:
   - `package.json`: name `@workspace/crm-db`, remove the `db:seed` script.
   - `prisma.config.ts`, `src/client.ts`: `CRM_DATABASE_URL`, `CRM_SHADOW_DATABASE_URL`; globalThis
@@ -44,9 +44,9 @@ Example: `crm` on port 5017.
 
 ### 2. App
 
-Copy `apps/hr` → `apps/crm` without `node_modules`, `.next`, `tsconfig.tsbuildinfo`, `next-env.d.ts`.
-Remove HR's feature: `src/features/`, `src/app/api/employees`, `src/app/api/departments`,
-`src/app/(app)/employees`. Then replace:
+Copy `apps/people` → `apps/crm` without `node_modules`, `.next`, `tsconfig.tsbuildinfo`, `next-env.d.ts`.
+Remove People's features: `src/features/`, `src/app/api/employees`, `src/app/api/departments`,
+`src/app/(app)/employees`, `src/app/(app)/recruitment`, `src/app/(app)/attendance`. Then replace:
 
 | Where                                                                                                  | Change                                                                                                       |
 | :----------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |

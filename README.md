@@ -10,12 +10,12 @@ interactive ones, TanStack Query/Table/Form throughout. Built with **Better Auth
   through their APIs or events.
 - `worker` runs background jobs (email today).
 
-> **State (2026-10-07):** `accounts`, `worker`, `hr` (reference app) and `finance` are built,
-> each domain on its own database, Finance calling HR's API with an app token; `recruitment` and
-> `attendance` are scaffolded on Next.js and `exam` on **TanStack Start**; signing out anywhere
-> signs out everywhere. `crm`, `operations`, `analytics` (Next.js) and `collaboration`, `workspace` (TanStack Start) are
-> scaffolded too: every app in the agreed list runs. Next: events ([roadmap](docs/roadmap.md) step 5).
-> Contributors and AI sessions: start with [CLAUDE.md](CLAUDE.md).
+> **State (2026-10-07):** Consolidated into high-cohesion Bounded Contexts (D21). `accounts` (:5011)
+> is the central OIDC provider; `people` (:5010) unifies HR records, recruitment pipeline, and
+> attendance tracking on `people_db`; `finance` (:5013) reads employees via M2M app tokens.
+> `exam` (:5016), `collaboration` (:5020), `workspace` (:5021) run on **TanStack Start**;
+> `crm` (:5017), `operations` (:5018), `analytics` (:5019) on Next.js.
+> For the visual system architecture and relationships, see [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md).
 
 ---
 
@@ -23,15 +23,13 @@ interactive ones, TanStack Query/Table/Form throughout. Built with **Better Auth
 
 | App                              | Framework      | URL                               | State                                                |
 | :------------------------------- | :------------- | :-------------------------------- | :--------------------------------------------------- |
-| `hr`                             | Next.js        | http://localhost:5010             | Employees and departments (Table, Form, Query)       |
+| `people`                         | Next.js        | http://localhost:5010             | HR, Recruitment, Attendance (`people_db`)            |
 | `accounts`                       | Next.js        | http://localhost:5011             | Sign-in, sign-up, verification, reset, OIDC provider |
 | `worker`                         | Node.js        | http://localhost:5012/health      | Email jobs → SMTP                                    |
-| `finance`                        | Next.js        | http://localhost:5013             | Payroll                                              |
-| `recruitment`                    | Next.js        | http://localhost:5014             | Sign-in only                                         |
-| `attendance`                     | Next.js        | http://localhost:5015             | Sign-in only                                         |
-| `exam`                           | TanStack Start | http://localhost:5016             | Sign-in only (TanStack Start reference app)          |
-| `crm`, `operations`, `analytics` | Next.js        | http://localhost:5017, 5018, 5019 | Sign-in only                                         |
-| `collaboration`, `workspace`     | TanStack Start | http://localhost:5020, 5021       | Sign-in only                                         |
+| `finance`                        | Next.js        | http://localhost:5013             | Payroll & ledger (calls People API via app token)    |
+| `exam`                           | TanStack Start | http://localhost:5016             | Assessments (TanStack Start reference app)           |
+| `crm`, `operations`, `analytics` | Next.js        | http://localhost:5017, 5018, 5019 | Domain apps                                          |
+| `collaboration`, `workspace`     | TanStack Start | http://localhost:5020, 5021       | Highly interactive domain apps                       |
 
 Tools: Mailpit http://localhost:5004 · RabbitMQ http://localhost:5002 (guest / guest).
 
@@ -44,10 +42,10 @@ pnpm install
 cp .env.example .env      # replace the change-me secrets
 docker compose up -d      # Postgres, RabbitMQ, Mailpit
 pnpm db:setup             # Prisma clients, migrations, seed
-pnpm dev                  # every app
+pnpm dev                  # starts all apps concurrently
 ```
 
-Open any app, click **Sign in**, use `admin@example.com` / `password123`.
+Open any app (e.g. http://localhost:5010 for People), click **Sign in**, use `admin@example.com` / `password123`.
 
 ---
 
@@ -55,6 +53,7 @@ Open any app, click **Sign in**, use `admin@example.com` / `password123`.
 
 | Document                                             | Read it for                                                             |
 | :--------------------------------------------------- | :---------------------------------------------------------------------- |
+| [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)     | Visual relationship map, Mermaid diagrams, bounded contexts & boundaries |
 | [CLAUDE.md](CLAUDE.md)                               | Current state, how to resume, fixed decisions, conventions (start here) |
 | [ARCHITECTURE.md](ARCHITECTURE.md)                   | Apps, rules, authentication, data, async work, layout, security         |
 | [docs/roadmap.md](docs/roadmap.md)                   | The work ahead, step by step, with done-checks                          |

@@ -10,6 +10,8 @@ through their APIs or events.
 > (decisions D17–D21). The platform is organized around high-cohesion **Bounded Contexts**
 > with strict database isolation (`packages/<context>-db`), OAuth2 Client Credentials M2M tokens,
 > and RabbitMQ domain events.
+> 
+> 🗺️ **Visual Relationship Map & Deep Dive:** See [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) for full Mermaid sequence diagrams, cross-context relationships, and atomic transaction boundary explanations.
 
 ---
 

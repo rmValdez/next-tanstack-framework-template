@@ -27,11 +27,9 @@ Then open any app, click **Sign in**, and use `admin@example.com` / `password123
 
 | App           | URL                                   |
 | :------------ | :------------------------------------ |
-| hr            | http://localhost:5010                 |
+| people        | http://localhost:5010 (HR, Recruitment, Attendance) |
 | accounts      | http://localhost:5011                 |
 | finance       | http://localhost:5013                 |
-| recruitment   | http://localhost:5014                 |
-| attendance    | http://localhost:5015                 |
 | exam          | http://localhost:5016                 |
 | crm           | http://localhost:5017                 |
 | operations    | http://localhost:5018                 |

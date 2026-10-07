@@ -29,33 +29,26 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | Area                                                                          | State                                                                                                                                    |
 | :---------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
 | `accounts`, `worker`                                                          | Built and verified                                                                                                                       |
-| `hr`                                                                          | Built: reference domain app (employees/departments, TanStack Table v9 + Form + Query, session API)                                       |
-| `finance`                                                                     | Built: payroll; reads employees through HR's `/api/v1` with an accounts-issued app token                                                 |
-| `recruitment`, `attendance`                                                   | Scaffolded from hr (Next.js): landing, sign-in, dashboard, sign-out                                                                      |
-| `exam`                                                                        | Scaffolded on **TanStack Start** (reference for collaboration/workspace)                                                                 |
-| `crm`, `operations`, `analytics` (Next), `collaboration`, `workspace` (Start) | Scaffolded (step 4): sign-in, dashboard, global sign-out                                                                                 |
-| Data                                                                          | One database per domain (`<app>_db`, D17); `company_db` dropped 2026-10-07                                                               |
-| App-to-app tokens (D18)                                                       | Built: finance → HR via `@workspace/core/apis`                                                                                           |
+| `people`                                                                      | Built: consolidated People context (:5010, `people_db`), HR directory, recruitment pipeline, attendance tracking, atomic hiring transaction |
+| `finance`                                                                     | Built: payroll; reads employees through People's `/api/v1` with an accounts-issued app token                                              |
+| `exam`                                                                        | Scaffolded on **TanStack Start** (learning reference for collaboration/workspace)                                                        |
+| `crm`, `operations`, `analytics` (Next), `collaboration`, `workspace` (Start) | Scaffolded: sign-in, dashboard, global sign-out                                                                                          |
+| Data                                                                          | One database per domain bounded context (`<context>_db`, D17, D21)                                                                       |
+| App-to-app tokens (D18)                                                       | Built: finance → People via `@workspace/core/apis`                                                                                       |
 | Global sign-out (D19)                                                         | Built: OIDC back-channel logout, `@workspace/core/oidc`, one Sign out button                                                             |
-| Boundary enforcement (D21)                                                    | Built: ESLint `no-restricted-imports` in all 12 apps locks each app to its own `-db` package only; negative test verified |
-| Fresh-setup check                                                             | Verified 2026-10-07 from empty volumes (`docker compose down -v`, `pnpm db:setup`, all 12 services healthy)                              |
-| Events                                                                        | Decided (D16); to be implemented after bounded-context consolidation                                                                     |
-| Checks                                                                        | One `pnpm dev` runs all 12 services; type-check 36/36, lint 12/12, build 22/22 all passing                                                |
-| Docs                                                                          | Updated with D21 bounded contexts architecture and boundary rules                                                                         |
-
-Last commits: `9578f9b` (D21 docs), `d625361` (ESLint isolation rules). Pushed.
+| Boundary enforcement (D21)                                                    | Built: ESLint `no-restricted-imports` in all apps locks each app to its own `-db` package only; negative test verified                    |
+| System Architecture                                                           | Documented with diagrams in [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) and [ARCHITECTURE.md](ARCHITECTURE.md)                       |
+| Checks                                                                        | One `pnpm dev` runs all services; type-check 30/30, lint 10/10, build 18/18 all passing                                                  |
 
 ## Current focus
 
-We are executing the production architecture roadmap agreed under D21:
+Executing the production architecture roadmap agreed under D21:
 1. **Database ownership enforcement:** ✅ Done (automated via ESLint).
-2. **6 Bounded-Context consolidation:** Next step.
-   - Consolidate `apps/hr`, `apps/recruitment`, `apps/attendance` → `apps/people` (:5010) and `packages/people-db`.
-   - Consolidate `apps/crm`, `apps/operations` → `apps/business` (:5017) and `packages/business-db`.
-   - Consolidate `apps/collaboration`, `apps/workspace` → `apps/workplace` (:5020) and `packages/workplace-db`.
-   - Preserve `apps/exam` as the isolated learning context on TanStack Start (:5016).
-3. **Cross-context domain events:** RabbitMQ Transactional Outbox + Inbox for real cross-context flows
-   (e.g. `people.employee.created.v1` → `Finance`, `Analytics`).
+2. **People Bounded-Context consolidation:** ✅ Done (`apps/people` + `packages/people-db` consolidating HR, Recruitment, Attendance).
+3. **Next Bounded-Contexts or Domain Events:**
+   - Option A: **Cross-context domain events via RabbitMQ:** Transactional Outbox + Inbox for real cross-context flows
+     (e.g. `people.employee.created.v1` → `Finance`, `Analytics`).
+   - Option B: Consolidate `crm` + `operations` → `apps/business` (:5017, `packages/business-db`) and `collaboration` + `workspace` → `apps/workplace` (:5020, `packages/workplace-db`).
 
 - Not designed yet: roles/permissions per app, realtime, Dockerfiles/CI.
 

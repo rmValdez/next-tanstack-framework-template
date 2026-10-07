@@ -24,8 +24,8 @@ bundles at build time; changing one requires a rebuild, not just a restart.
 
 ## Variables
 
-The pattern is the same for every domain app `<app>` (`HR`, `FINANCE`, `RECRUITMENT`,
-`ATTENDANCE`, `EXAM`, and later `CRM`, `OPERATIONS`, `ANALYTICS`, `COLLABORATION`, `WORKSPACE`).
+The pattern is the same for every domain app `<app>` (`PEOPLE`, `FINANCE`, `EXAM`, `CRM`,
+`OPERATIONS`, `ANALYTICS`, `COLLABORATION`, `WORKSPACE`).
 
 ### Shared
 
@@ -54,7 +54,7 @@ The pattern is the same for every domain app `<app>` (`HR`, `FINANCE`, `RECRUITM
 | `<APP>_OAUTH_CLIENT_ID`     | non-empty  | Equals the app name; must match the seeded client.                     |
 | `<APP>_OAUTH_CLIENT_SECRET` | ≥ 32 chars | Stored hashed in `accounts_db`. After changing it, run `pnpm db:seed`. |
 
-Database URLs (D17): `<APP>_DATABASE_URL=postgresql://<app>_app:<app>_pw@localhost:5000/<app>_db`,
+Database URLs (D17, D21): `<APP>_DATABASE_URL=postgresql://<app>_app:<app>_pw@localhost:5000/<app>_db`,
 `<APP>_SHADOW_DATABASE_URL=postgresql://<app>_app:<app>_pw@localhost:5000/<app>_shadow`. Each
 role can connect only to its own two databases.
 
@@ -79,13 +79,11 @@ use: accounts' `accessTokenExpiresIn` / `refreshTokenExpiresIn`. Decide before w
 
 | What                                                                                    | Port |     | What            | Port                 |
 | :-------------------------------------------------------------------------------------- | :--- | :-- | :-------------- | :------------------- |
-| `hr`                                                                                    | 5010 |     | PostgreSQL      | 5000                 |
+| `people` (HR, Recruitment, Attendance)                                                  | 5010 |     | PostgreSQL      | 5000                 |
 | `accounts`                                                                              | 5011 |     | RabbitMQ (AMQP) | 5001                 |
 | `worker` health                                                                         | 5012 |     | RabbitMQ UI     | 5002 (guest / guest) |
 | `finance`                                                                               | 5013 |     | Mailpit SMTP    | 5003                 |
-| `recruitment`                                                                           | 5014 |     | Mailpit inbox   | 5004                 |
-| `attendance`                                                                            | 5015 |     |                 |                      |
-| `exam`                                                                                  | 5016 |     |                 |                      |
+| `exam`                                                                                  | 5016 |     | Mailpit inbox   | 5004                 |
 | `crm` 5017, `operations` 5018, `analytics` 5019, `collaboration` 5020, `workspace` 5021 |      |     |                 |                      |
 
 Docker ports bind to `127.0.0.1` only, so the databases and broker are not reachable from the
