@@ -15,6 +15,22 @@ const eslintConfig = [
   {
     ignores: [".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**"],
   },
+  {
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@workspace/*-db", "!@workspace/analytics-db"],
+              message:
+                "Boundary violation: apps/analytics may only import its own database package (@workspace/analytics-db). Access other domains via API or events.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 export default eslintConfig;
