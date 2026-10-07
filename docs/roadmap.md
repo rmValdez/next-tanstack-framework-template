@@ -41,15 +41,14 @@ Done 2026-10-07: `crm` (5017), `operations` (5018), `analytics` (5019) on Next.j
 
 ---
 
-## Step 5: Bounded Contexts Consolidation & Automated Boundaries (D21)
+## Step 5: Bounded Contexts Consolidation & Automated Boundaries (D21) 🟡 (In Progress)
 
-- **Production consolidation:** organize the 10 domain apps into 5 high-cohesion domain services:
-  `people` (:5010), `finance` (:5013), `business` (:5017), `workplace` (:5020), `exam` (:5016 - learning),
-  `analytics` (:5019), alongside `accounts` (:5011) and `worker` (:5012).
-- **Automated DB Isolation Rule:** enforce via ESLint `no-restricted-imports` that `apps/<context>` can
+- **Automated DB Isolation Rule:** ✅ Done. Enforced via ESLint `no-restricted-imports` that `apps/<context>` can
   **never** import any database package other than its own `@workspace/<context>-db`.
-- **Extraction Path documented:** maintain the recipe for splitting sub-modules (e.g. `recruitment`) into
-  independent microservices when scale demands it.
+- **People Bounded Context:** ✅ Done. Consolidated HR, Recruitment, and Attendance into `apps/people` (:5010) and
+  `packages/people-db`. Implemented atomic candidate-to-employee hiring transaction. Retired legacy micro-apps and packages.
+- **Business Bounded Context:** Merge `crm` and `operations` into `apps/business` (`packages/business-db`).
+- **Workplace Bounded Context:** Merge `collaboration` and `workspace` into `apps/workplace` (`packages/workplace-db`, TanStack Start).
 
 ---
 
