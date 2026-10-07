@@ -2,7 +2,7 @@
 
 What has been built, phase by phase, with the check that closed each phase and the gotchas found on
 the way. Work still ahead is in [roadmap.md](roadmap.md). Paths and names are as they were when the
-phase was built; later decisions ([decisions.md](decisions.md)) say what changed since.
+phase was built; later decisions ([../architecture/decisions.md](../architecture/decisions.md)) say what changed since.
 
 | Phase | What                                                                        | Date       |
 | :---- | :-------------------------------------------------------------------------- | :--------- |
@@ -185,7 +185,7 @@ Notes:
 > `company_db` is superseded by one database per domain (D17); the HR app itself stays.
 
 Replaces the generic `web` client planned earlier
-([D15](decisions.md#d15-real-domain-apps-on-company_db-not-a-generic-example-app)). The sign-in code
+([D15](../architecture/decisions.md#d15-real-domain-apps-on-company_db-not-a-generic-example-app)). The sign-in code
 built for `web` carried over unchanged apart from names.
 
 | Area         | Files                                                                                                                                                                                                                           |
@@ -231,7 +231,7 @@ Open (designed later, not blocking): authorization beyond "signed in" (needs a r
 
 ## Phase 6b: scaffolded `recruitment`, `attendance`, `exam` (2026-10-06)
 
-Generated from `hr` by a script (the recipe is in [adding-a-service.md](adding-a-service.md)):
+Generated from `hr` by a script (the recipe is in [../guides/adding-a-service.md](../guides/adding-a-service.md)):
 copy `apps/hr` without `src/features` and employee routes, copy `packages/hr-db` with only the
 Better Auth models, then register the app in `init.sql`, `.env`/`.env.example`, `core/urls.ts`,
 accounts `trustedOrigins` and seed `CLIENTS`, and `turbo.json`. `finance` was scaffolded the same

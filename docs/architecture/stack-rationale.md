@@ -81,4 +81,4 @@ Framework choice doesn't change the architecture, because every boundary is a pr
 | Background work     | RabbitMQ, types in `@workspace/core`  | ✅                                           | ✅                                                               |
 | Shared UI           | `@workspace/ui`                       | ✅                                           | ✅                                                               |
 
-New apps follow [adding-a-service.md](adding-a-service.md), whichever framework they use.
+New apps follow [../guides/adding-a-service.md](../guides/adding-a-service.md), whichever framework they use.

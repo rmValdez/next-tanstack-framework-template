@@ -138,7 +138,7 @@ Concretely: add the API to `API_RESOURCES` and the caller to `API_GRANTS` in
 `packages/core/src/apis.ts` (accounts config and seed pick both up), copy
 `apps/hr/src/lib/app-token.ts` to the owner and `apps/finance/src/lib/hr-client.ts` to the caller,
 then `pnpm --filter @workspace/accounts-db db:seed` and restart accounts. See D18 and
-[auth-flows.md](auth-flows.md#5-app-to-app-calls-d18).
+[../architecture/auth-flows.md](../architecture/auth-flows.md#5-app-to-app-calls-d18).
 
 ---
 

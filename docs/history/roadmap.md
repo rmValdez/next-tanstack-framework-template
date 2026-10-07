@@ -2,7 +2,7 @@
 
 The work ahead, in order. Each step lists its tasks, what is already known, and the check that
 closes it. What has been built so far, with its test results and gotchas, is in
-[build-log.md](build-log.md). Why each choice was made: [decisions.md](decisions.md).
+[build-log.md](build-log.md). Why each choice was made: [../architecture/decisions.md](../architecture/decisions.md).
 
 **Order (agreed 2026-10-06):** ~~1 database separation + app-to-app auth~~ ✅ → ~~2 global sign-out~~ ✅ →
 ~~3 exam on TanStack Start~~ ✅ → ~~4 new apps~~ ✅ → 5 events.

@@ -11,7 +11,7 @@ through their APIs or events.
 > with strict database isolation (`packages/<context>-db`), OAuth2 Client Credentials M2M tokens,
 > and RabbitMQ domain events.
 > 
-> 🗺️ **Visual Relationship Map & Deep Dive:** See [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) for full Mermaid sequence diagrams, cross-context relationships, and atomic transaction boundary explanations.
+> 🗺️ **Visual Relationship Map & Deep Dive:** See [docs/architecture/system-architecture.md](docs/architecture/system-architecture.md) for full Mermaid sequence diagrams, cross-context relationships, and atomic transaction boundary explanations.
 
 ---
 
@@ -28,7 +28,7 @@ through their APIs or events.
 | `analytics`         | Next.js 15        | 5019 | Aggregated reporting data, event projections only               | `@workspace/analytics-db` (`analytics_db`) |
 | `worker`            | Node.js (Express) | 5012 | Background email delivery, queue consumers                      | _No domain DB (Broker only)_               |
 
-Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP 5003 (UI 5004). Framework choices: [docs/company-stack.md](docs/company-stack.md).
+Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP 5003 (UI 5004). Framework choices: [docs/architecture/stack-rationale.md](docs/architecture/stack-rationale.md).
 
 ---
 
@@ -126,7 +126,7 @@ graph TD
 - **Cookies:** one `cookiePrefix` per app (`accounts`, `hr`, …) because all apps share a cookie jar
   on localhost. Sessions are never shared across apps (D1).
 
-Full flows, endpoints and gotchas: [docs/auth-flows.md](docs/auth-flows.md).
+Full flows, endpoints and gotchas: [docs/architecture/auth-flows.md](docs/architecture/auth-flows.md).
 
 ---
 
@@ -208,4 +208,4 @@ src/lib/            same as the Next apps: auth.ts (getAuth, tanstackStartCookie
 9. Rate limiting in memory per process; move to shared storage before scaling out.
 10. Emails rendered worker-side with escaped values; auth links never logged in production.
 
-Decisions and their reasons: [docs/decisions.md](docs/decisions.md).
+Decisions and their reasons: [docs/architecture/decisions.md](docs/architecture/decisions.md).

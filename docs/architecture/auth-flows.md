@@ -1,6 +1,6 @@
 # Authentication Flows
 
-How identity moves between `accounts` and the domain apps. Read [ARCHITECTURE.md](../ARCHITECTURE.md)
+How identity moves between `accounts` and the domain apps. Read [ARCHITECTURE.md](../../ARCHITECTURE.md)
 first for the service map.
 
 | Flow                                                      | State (2026-10-07)                                                |
@@ -231,7 +231,7 @@ sequenceDiagram
 | `/send-verification-email` | 300 s  | 3   |
 | everything else            | 60 s   | 100 |
 
-In-memory storage, per process. See [deployment.md](deployment.md) before running more than one instance.
+In-memory storage, per process. See [../guides/deployment.md](../guides/deployment.md) before running more than one instance.
 
 ---
 

@@ -51,21 +51,38 @@ Open any app (e.g. http://localhost:5010 for People), click **Sign in**, use `ad
 
 ## Documentation
 
-| Document                                             | Read it for                                                             |
-| :--------------------------------------------------- | :---------------------------------------------------------------------- |
-| [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)     | Visual relationship map, Mermaid diagrams, bounded contexts & boundaries |
-| [CLAUDE.md](CLAUDE.md)                               | Current state, how to resume, fixed decisions, conventions (start here) |
-| [ARCHITECTURE.md](ARCHITECTURE.md)                   | Apps, rules, authentication, data, async work, layout, security         |
-| [docs/roadmap.md](docs/roadmap.md)                   | The work ahead, step by step, with done-checks                          |
-| [docs/build-log.md](docs/build-log.md)               | What was built, how it was verified, gotchas found                      |
-| [docs/decisions.md](docs/decisions.md)               | Every major decision, its alternative, and why                          |
-| [docs/company-stack.md](docs/company-stack.md)       | Framework per app; when TanStack Start is justified                     |
-| [docs/auth-flows.md](docs/auth-flows.md)             | SSO, sign-out, app-to-app tokens, accounts flows, cookies               |
-| [docs/configuration.md](docs/configuration.md)       | Environment variables and ports                                         |
-| [docs/development.md](docs/development.md)           | Scripts, making changes, debugging                                      |
-| [docs/adding-a-service.md](docs/adding-a-service.md) | Adding a domain app, an API, a worker, a non-Next client                |
-| [docs/deployment.md](docs/deployment.md)             | Production checklist and scaling                                        |
-| [docs/origins.md](docs/origins.md)                   | What came from the monolith template and philgeps                       |
+All in-depth documentation is organized by role and usage under [`docs/`](docs/README.md).
+
+### 🚀 Getting Started
+| Document | Read it for |
+| :--- | :--- |
+| [docs/getting-started/beginners-guide.md](docs/getting-started/beginners-guide.md) | **New to this project? Start here!** 60s mental model, 3 golden rules & FAQ |
+| [docs/getting-started/development.md](docs/getting-started/development.md) | Local environment, scripts, making changes, debugging recipes |
+| [docs/getting-started/configuration.md](docs/getting-started/configuration.md) | Complete environment variable and port reference |
+
+### 🏛️ Architecture & System Design
+| Document | Read it for |
+| :--- | :--- |
+| [docs/architecture/system-architecture.md](docs/architecture/system-architecture.md) | **Visual architecture map**, Mermaid sequence & ER diagrams, bounded contexts |
+| [docs/architecture/decisions.md](docs/architecture/decisions.md) | Architectural decision records (ADRs D1–D21), alternatives & rationale |
+| [docs/architecture/auth-flows.md](docs/architecture/auth-flows.md) | SSO, session cookies, back-channel logout, app-to-app M2M tokens |
+| [docs/architecture/stack-rationale.md](docs/architecture/stack-rationale.md) | Framework per app; when TanStack Start is chosen over Next.js 15 |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Core system rules, contracts, and monorepo principles |
+
+### 🛠️ How-To Guides
+| Document | Read it for |
+| :--- | :--- |
+| [docs/guides/adding-a-service.md](docs/guides/adding-a-service.md) | Step-by-step checklist for scaffolding a new service or API |
+| [docs/guides/deployment.md](docs/guides/deployment.md) | Production checklist, Docker deployment, and scaling |
+
+### 📜 History & Context
+| Document | Read it for |
+| :--- | :--- |
+| [docs/history/roadmap.md](docs/history/roadmap.md) | Upcoming work (Domain Events, Outbox/Inbox pattern) |
+| [docs/history/build-log.md](docs/history/build-log.md) | Engineering log, phase-by-phase verification, and gotchas |
+| [docs/history/origins.md](docs/history/origins.md) | Migration history from the monolith template |
+| [docs/README.md](docs/README.md) | Central documentation directory index |
+| [CLAUDE.md](CLAUDE.md) | AI/Developer onboarding cheat sheet and conventions |
 
 ---
 
@@ -80,7 +97,7 @@ Open any app (e.g. http://localhost:5010 for People), click **Sign in**, use `ad
 | `pnpm db:setup`   | Generate clients, migrate, seed          |
 | `pnpm db:migrate` | Create a migration after a schema change |
 
-Full list: [docs/development.md](docs/development.md).
+Full list: [docs/getting-started/development.md](docs/getting-started/development.md).
 
 ## License
 

@@ -1,6 +1,6 @@
 # System Architecture & Relationship Map
 
-This document explains the architecture of the platform, the relationships between services, database isolation boundaries, and why services are structured into **Bounded Contexts** (Decision [D21](docs/decisions.md#d21-consolidation-into-6-bounded-contexts--worker-production-grade)).
+This document explains the architecture of the platform, the relationships between services, database isolation boundaries, and why services are structured into **Bounded Contexts** (Decision [D21](decisions.md#d21-consolidation-into-6-bounded-contexts--worker-production-grade)).
 
 ---
 

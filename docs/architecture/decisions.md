@@ -84,7 +84,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 ### D12. No Redis in v1
 
 - **Why:** nothing requires it until rate limits must be shared across instances. Documented as a
-  pre-scale step in [deployment.md](deployment.md).
+  pre-scale step in [../guides/deployment.md](../guides/deployment.md).
 
 ### D13. Shared `company_db` with one schema per domain
 
@@ -108,7 +108,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 - **Why:** one default avoids a framework debate per project; TanStack libraries run inside Next.js,
   so they don't require a second framework. Because sign-in, data and jobs are protocol boundaries
   (OIDC, database, queue), a Start app plugs into the same `accounts` without changes. Details:
-  [company-stack.md](company-stack.md).
+  [stack-rationale.md](stack-rationale.md).
 
 ### D15. Real domain apps, not a generic example app
 
@@ -122,7 +122,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D16. Domain events: a worker process per domain, outbox and inbox
 
-- **Date:** 2026-10-06. **Status:** decided, not built ([roadmap](roadmap.md) step 5).
+- **Date:** 2026-10-06. **Status:** decided, not built ([roadmap](../history/roadmap.md) step 5).
 - **Chosen:** each domain app that consumes events gets `src/worker.ts`, run with `tsx` as its own
   process next to the web server and connected to that domain's own database. Events go through a
   topic exchange `domain.events` with versioned names (`recruitment.candidate.hired.v1`) and Zod
@@ -145,7 +145,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D17. One database per domain (`<app>_db`), replacing `company_db`
 
-- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](build-log.md), step 1).
+- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](../history/build-log.md), step 1).
 - **Chosen:** `accounts_db` for identity, and one database per business domain: `hr_db`,
   `finance_db`, `recruitment_db`, `attendance_db`, `exam_db`, `crm_db`, `operations_db`,
   `analytics_db`, `collaboration_db`, `workspace_db`. Each is owned by its role `<app>_app`, with
@@ -162,7 +162,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D18. App-to-app calls: accounts-issued JWT access tokens (client credentials)
 
-- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](build-log.md), step 1).
+- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](../history/build-log.md), step 1).
 - **Where:** `@workspace/core/apis` (`API_RESOURCES`, `API_SCOPES`, `API_GRANTS`, response
   contracts like `HrEmployeeV1`) is the single definition used by accounts' `oauthProvider`
   config, its seed, the owner (`apps/hr/src/lib/app-token.ts`) and the caller
@@ -181,7 +181,7 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
 
 ### D19. OIDC stays; global sign-out is required
 
-- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](build-log.md), step 2).
+- **Date:** 2026-10-06. **Status:** built and verified 2026-10-07 ([build log](../history/build-log.md), step 2).
 - **Chosen:** keep OIDC as the authentication standard (D1). Signing out in any app ends the
   accounts session **and** every app's local session, through **OIDC Back-Channel Logout**:
   `@better-auth/oauth-provider` 1.7.7 sends signed logout tokens to each client's

@@ -7,8 +7,8 @@ written so a fresh session can resume exactly where the last one stopped.
 
 `next-tanstack-framework-template`: the company's full-stack **platform template** in one pnpm +
 Turborepo monorepo. A central identity app (`accounts`), one application per business domain, and a
-background `worker`. Final architecture agreed with the user on 2026-10-06 (decisions D17–D20 in
-[docs/decisions.md](docs/decisions.md)):
+background `worker`. Final architecture agreed with the user on 2026-10-06 (decisions D17–D21 in
+[docs/architecture/decisions.md](docs/architecture/decisions.md)):
 
 - `accounts` (Next.js, :5011): the only identity provider. Better Auth + `jwt` + `oauthProvider`
   (OIDC). Owns `accounts_db`. No business data.
@@ -54,7 +54,7 @@ Executing the production architecture roadmap agreed under D21:
 
 ## Resume here
 
-Follow [docs/roadmap.md](docs/roadmap.md). Steps 1–4 are done: every app in the agreed list runs
+Follow [docs/history/roadmap.md](docs/history/roadmap.md). Steps 1–4 are done: every app in the agreed list runs
 (own database, SSO, app tokens, global sign-out; exam/collaboration/workspace on TanStack Start).
 **Next: step 5, domain events (D16).** It is the first step that adds domain features
 (recruitment candidates → HR employees), which the user paused; confirm with the user before
@@ -79,18 +79,20 @@ no errors; type-check, lint, build pass; docs updated; commit (no Claude trailer
 
 | File                                                 | Contents                                                                  |
 | :--------------------------------------------------- | :------------------------------------------------------------------------ |
-| [README.md](README.md)                               | Overview, apps, quick start, doc index                                    |
-| [ARCHITECTURE.md](ARCHITECTURE.md)                   | Apps, rules, auth, data, async work, layout, security (target + state)    |
-| [docs/roadmap.md](docs/roadmap.md)                   | **The work ahead**, step by step, with researched details and done-checks |
-| [docs/build-log.md](docs/build-log.md)               | What was built per phase, verification results, gotchas                   |
-| [docs/decisions.md](docs/decisions.md)               | Decision log D1–D20 (with superseded statuses)                            |
-| [docs/company-stack.md](docs/company-stack.md)       | Framework per app, when TanStack Start is justified                       |
-| [docs/auth-flows.md](docs/auth-flows.md)             | SSO, sign-out, app-to-app tokens, accounts flows, cookies                 |
-| [docs/configuration.md](docs/configuration.md)       | Env variables, ports                                                      |
-| [docs/development.md](docs/development.md)           | Scripts, making changes, debugging table                                  |
-| [docs/adding-a-service.md](docs/adding-a-service.md) | Scaffolding recipe for new apps, APIs, workers                            |
-| [docs/deployment.md](docs/deployment.md)             | Production checklist                                                      |
-| [docs/origins.md](docs/origins.md)                   | Copy map from the monolith, differences from philgeps                     |
+| [README.md](README.md)                                           | Overview, apps, quick start, doc index                                    |
+| [docs/getting-started/beginners-guide.md](docs/getting-started/beginners-guide.md) | **Beginner's guide**, 60s mental model, 3 golden rules & FAQ               |
+| [docs/architecture/system-architecture.md](docs/architecture/system-architecture.md) | **Visual architecture map**, Mermaid diagrams & bounded context boundaries |
+| [ARCHITECTURE.md](ARCHITECTURE.md)                               | Apps, rules, auth, data, async work, layout, security (target + state)    |
+| [docs/history/roadmap.md](docs/history/roadmap.md)               | **The work ahead**, step by step, with researched details and done-checks |
+| [docs/history/build-log.md](docs/history/build-log.md)           | What was built per phase, verification results, gotchas                   |
+| [docs/architecture/decisions.md](docs/architecture/decisions.md) | Decision log D1–D21 (with superseded statuses)                            |
+| [docs/architecture/stack-rationale.md](docs/architecture/stack-rationale.md) | Framework per app, when TanStack Start is justified                       |
+| [docs/architecture/auth-flows.md](docs/architecture/auth-flows.md) | SSO, sign-out, app-to-app tokens, accounts flows, cookies                 |
+| [docs/getting-started/configuration.md](docs/getting-started/configuration.md) | Env variables, ports                                                      |
+| [docs/getting-started/development.md](docs/getting-started/development.md) | Scripts, making changes, debugging table                                  |
+| [docs/guides/adding-a-service.md](docs/guides/adding-a-service.md) | Scaffolding recipe for new apps, APIs, workers                            |
+| [docs/guides/deployment.md](docs/guides/deployment.md)         | Production checklist                                                      |
+| [docs/history/origins.md](docs/history/origins.md)               | Copy map from the monolith, differences from philgeps                     |
 
 When code is built, update the docs to match and the state markers ("planned", "not built").
 
