@@ -1,8 +1,7 @@
 # Adding a Service
 
 How to add a domain app, an API other apps can call, a background service, or a non-Next client.
-The Next.js recipe below is how `finance`, `recruitment` and `attendance` were scaffolded from
-`hr`; TanStack Start apps copy `apps/exam`.
+The Next.js recipe below is how domain apps are scaffolded from `apps/people`; TanStack Start apps copy `apps/exam`.
 
 ---
 
@@ -57,9 +56,9 @@ Remove People's features: `src/features/`, `src/app/api/employees`, `src/app/api
 | `src/lib/auth-client.ts`                                                                               | `crmUrl`                                                                                                     |
 | `src/app/api/health/route.ts`                                                                          | `crmDb`                                                                                                      |
 | `src/app/layout.tsx`, `src/components/AppHeader.tsx`, `AppNav.tsx`, `UserMenu.tsx`, `src/app/page.tsx` | Name, icon, landing text, nav links                                                                          |
-| `src/app/(app)/dashboard/page.tsx`                                                                     | Identity card only (see `apps/recruitment` for the scaffold version)                                         |
+| `src/app/(app)/dashboard/page.tsx`                                                                     | Identity card only (see `apps/finance` for the scaffold version)                                            |
 
-Then `grep -ri "hr" apps/crm/src` for leftovers.
+Then `grep -ri "people" apps/crm/src` for leftovers.
 
 ### 3. Register in shared files
 
@@ -119,10 +118,10 @@ Rules that differ from Next.js (details in the build log, step 3):
 
 ## An API other apps may call
 
-Owner side (e.g. HR):
+Owner side (e.g. People):
 
 - Add the resource to accounts' `oauthProvider({ resources: [...] })` with an absolute URI
-  identifier (`${hrUrl}/api/v1`) and its `allowedScopes` (`hr:employees.read`); add the scopes to
+  identifier (`${peopleUrl}/api/v1`) and its `allowedScopes` (`people:employees.read`); add the scopes to
   the provider's `scopes` list.
 - Serve the API under `/api/v1/...`, bearer-only, verified with `verifyBearerToken` (JWKS, issuer,
   audience = the identifier, required scope). Return a read model, not the raw table.
@@ -136,7 +135,7 @@ Caller side (e.g. finance):
 
 Concretely: add the API to `API_RESOURCES` and the caller to `API_GRANTS` in
 `packages/core/src/apis.ts` (accounts config and seed pick both up), copy
-`apps/hr/src/lib/app-token.ts` to the owner and `apps/finance/src/lib/hr-client.ts` to the caller,
+`apps/people/src/lib/app-token.ts` to the owner and `apps/finance/src/lib/hr-client.ts` to the caller,
 then `pnpm --filter @workspace/accounts-db db:seed` and restart accounts. See D18 and
 [../architecture/auth-flows.md](../architecture/auth-flows.md#5-app-to-app-calls-d18).
 

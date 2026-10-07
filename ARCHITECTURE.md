@@ -170,7 +170,7 @@ docker-compose.yml         Postgres, RabbitMQ, Mailpit
 docs/                      see README
 ```
 
-Inside a Next domain app (`apps/hr` is the reference):
+Inside a Next domain app (`apps/people` is the reference):
 
 ```
 src/app/            landing (/), sso/start, (app)/dashboard, (app)/<feature>, api/auth, api/health, api/<feature>

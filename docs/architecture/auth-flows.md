@@ -167,15 +167,15 @@ sequenceDiagram
     H-->>F: employees (read model chosen by HR)
 ```
 
-- HR's `/api/v1/*` accepts only bearer tokens; HR's own UI keeps using session routes (`/api/employees`).
+- People's `/api/v1/*` accepts only bearer tokens; People's own UI keeps using session routes (`/api/employees`).
 - One definition in `@workspace/core/apis`: `API_RESOURCES` (identifier = `aud`, scopes),
   `API_GRANTS` (which app may call which API). Accounts declares the resources and scopes in
   `oauthProvider`; the seed gives each calling client the `client_credentials` grant, its
   `clientCredentialsScopes`, and an `oauthClientResource` link (required:
   `enforcePerClientResources` defaults to true).
-- Owner: `apps/hr/src/lib/app-token.ts` (`requireAppToken`, JWKS verification, 401/403 with the
+- Owner: `apps/people/src/lib/app-token.ts` (`requireAppToken`, JWKS verification, 401/403 with the
   library's `WWW-Authenticate` challenge). Caller: `apps/finance/src/lib/hr-client.ts` (token
-  cache, one retry on 401, `HrUnavailableError` → 503 "HR is unavailable").
+  cache, one retry on 401, `HrUnavailableError` → 503 "People is unavailable").
 - Verified: no token, garbage, or a token without `resource` (accounts then issues an opaque
   token) → 401; HR client asking for the grant → `unauthorized_client`; unknown scope →
   `invalid_scope`; salary never in the response.

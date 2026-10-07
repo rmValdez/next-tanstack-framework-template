@@ -60,14 +60,14 @@ Run from the repo root. Turborepo fans each one out to every app and package tha
 | `pnpm db:generate` | Generate every Prisma client                                      |
 | `pnpm db:migrate`  | Create and apply a migration (interactive)                        |
 | `pnpm db:deploy`   | Apply existing migrations                                         |
-| `pnpm db:seed`     | Seed accounts (admin user, every OAuth client) and HR sample data |
+| `pnpm db:seed`     | Seed accounts (admin user, every OAuth client) and People sample data |
 | `pnpm db:setup`    | `db:generate` + `db:deploy` + `db:seed`                           |
 
 One app or package:
 
 ```bash
-pnpm --filter hr dev
-pnpm --filter @workspace/hr-db db:migrate --name add_positions
+pnpm --filter people dev
+pnpm --filter @workspace/people-db db:migrate --name add_positions
 pnpm --filter @workspace/accounts-db db:seed
 ```
 
@@ -132,7 +132,7 @@ the pattern.
 | Prisma: `@prisma/client did not initialize` / module `generated/client` not found      | Run `pnpm db:generate`.                                                                                                                                                                                                             |
 
 Useful views: RabbitMQ http://localhost:5002, Mailpit http://localhost:5004, a database:
-`pnpm --filter @workspace/hr-db exec prisma studio`.
+`pnpm --filter @workspace/people-db exec prisma studio`.
 
 ---
 

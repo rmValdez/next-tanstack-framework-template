@@ -154,7 +154,7 @@ step 3).
 
 - Match the monolith's code style: comments explain _why_, Zod env parsed at import, server-only
   secrets in `config.server.ts`, never imported by client components.
-- Domain app layout follows `apps/hr` (see ARCHITECTURE.md §7): `src/features/<x>/` with a Zod
+- Domain app layout follows `apps/people` (see ARCHITECTURE.md §7): `src/features/<x>/` with a Zod
   schema shared by form and API, `server.ts`, `queries.ts`, Table/Form/View components; guarded
   pages call `requireAuth(path)`; route handlers call `requireApiSession()`.
 - Naming per app `<app>`: package `@workspace/<app>-db`, database `<app>_db`, role `<app>_app`, env
