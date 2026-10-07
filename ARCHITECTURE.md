@@ -6,84 +6,102 @@ one application per business domain, and a background `worker`. Conventional app
 `accounts` over **OpenID Connect**, owns its **own database**, and reaches other domains only
 through their APIs or events.
 
-> **State (2026-10-07):** this page describes the agreed target (decisions D17–D20). Built today:
-> `accounts`, `worker`, `hr`, `finance`, each domain on its own database, Finance reading HR
-> through HR's API with an app token, global sign-out; `recruitment`, `attendance` scaffolded on
-> Next.js and `exam` on TanStack Start (sign-in only). `crm`, `operations`, `analytics`
-> (Next.js) and `collaboration`, `workspace` (Start) scaffolded too. Next: events
-> ([roadmap](docs/roadmap.md) step 5). Progress:
-> [build log](docs/build-log.md).
+> **State (2026-10-07):** this page describes the agreed production architecture
+> (decisions D17–D21). The platform is organized around high-cohesion **Bounded Contexts**
+> with strict database isolation (`packages/<context>-db`), OAuth2 Client Credentials M2M tokens,
+> and RabbitMQ domain events.
 
 ---
 
-## 1. Applications
+## 1. Applications & Bounded Contexts
 
-| App             | Framework             | Port | Owns                                                      | State                        |
-| :-------------- | :-------------------- | :--- | :-------------------------------------------------------- | :--------------------------- |
-| `accounts`      | Next.js + Better Auth | 5011 | Users, passwords, sessions, OIDC clients and tokens, JWKS | Built                        |
-| `hr`            | Next.js               | 5010 | Employees, departments, positions, company administration | Built (reference app)        |
-| `finance`       | Next.js               | 5013 | Payroll, accounting                                       | Built (payroll)              |
-| `recruitment`   | Next.js               | 5014 | Candidates, hiring                                        | Scaffolded                   |
-| `attendance`    | Next.js               | 5015 | Attendance, schedules, time tracking                      | Scaffolded                   |
-| `exam`          | TanStack Start        | 5016 | Exams, attempts, results                                  | Scaffolded (Start reference) |
-| `crm`           | Next.js               | 5017 | Customers, contacts, leads                                | Scaffolded                   |
-| `operations`    | Next.js               | 5018 | Operational workflows                                     | Scaffolded                   |
-| `analytics`     | Next.js               | 5019 | Aggregated reporting data only                            | Scaffolded                   |
-| `collaboration` | TanStack Start        | 5020 | Communication, realtime collaboration                     | Scaffolded                   |
-| `workspace`     | TanStack Start        | 5021 | Projects, tasks, documents                                | Scaffolded                   |
-| `worker`        | Express + amqplib     | 5012 | Nothing persistent; sends email jobs                      | Built                        |
+| Bounded Context     | Framework         | Port | Responsibility & Sub-domains                                    | Database Package & DB                      |
+| :------------------ | :---------------- | :--- | :-------------------------------------------------------------- | :----------------------------------------- |
+| `accounts`          | Next.js 15        | 5011 | Identity, users, passwords, sessions, OIDC authority, JWKS      | `@workspace/accounts-db` (`accounts_db`)   |
+| `people` (`hr`)     | Next.js 15        | 5010 | Employees, departments, recruitment, attendance, administration | `@workspace/people-db` (`people_db`)       |
+| `finance`           | Next.js 15        | 5013 | Payroll, accounting, invoicing, ledgers                         | `@workspace/finance-db` (`finance_db`)     |
+| `business` (`crm`)  | Next.js 15        | 5017 | Customers, deals, contacts, operational workflows               | `@workspace/business-db` (`business_db`)   |
+| `workplace`         | TanStack Start    | 5020 | Workspace projects, tasks, documents, realtime collaboration    | `@workspace/workplace-db` (`workplace_db`) |
+| `learning` (`exam`) | TanStack Start    | 5016 | Exams, tests, question banks, assessment attempts               | `@workspace/exam-db` (`exam_db`)           |
+| `analytics`         | Next.js 15        | 5019 | Aggregated reporting data, event projections only               | `@workspace/analytics-db` (`analytics_db`) |
+| `worker`            | Node.js (Express) | 5012 | Background email delivery, queue consumers                      | _No domain DB (Broker only)_               |
 
-Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP
-5003 (UI 5004). Framework reasons: [docs/company-stack.md](docs/company-stack.md).
+Infrastructure: PostgreSQL 16 on 5000, RabbitMQ on 5001 (UI 5002), Mailpit SMTP 5003 (UI 5004). Framework choices: [docs/company-stack.md](docs/company-stack.md).
 
 ---
 
-## 2. Overview
+## 2. Overview & Communication Boundaries
 
 ```mermaid
 graph TD
     Browser["Browser"]
 
-    subgraph Identity
+    subgraph Identity["Identity Authority (:5011)"]
         ACC["accounts (Next.js)<br/>Better Auth + jwt + oauthProvider"]
         ACCDB[("accounts_db")]
+        ACC --- ACCDB
     end
 
-    subgraph Domains["Domain apps (each its own database)"]
-        HR["hr · Next.js"] --- HRDB[("hr_db")]
-        FIN["finance · Next.js"] --- FINDB[("finance_db")]
-        REC["recruitment · Next.js"] --- RECDB[("recruitment_db")]
-        ATT["attendance · Next.js"] --- ATTDB[("attendance_db")]
-        EXAM["exam · TanStack Start"] --- EXAMDB[("exam_db")]
-        MORE["crm, operations, analytics (Next.js)<br/>collaboration, workspace (Start)"]
+    subgraph Contexts["Domain Services (Strict Database Isolation)"]
+        PEOPLE["people (Next.js :5010)<br/>HR · Recruitment · Attendance"]
+        PEOPLE_DB[("people_db")]
+        PEOPLE --- PEOPLE_DB
+
+        FIN["finance (Next.js :5013)<br/>Payroll · Accounting"]
+        FIN_DB[("finance_db")]
+        FIN --- FIN_DB
+
+        BUS["business (Next.js :5017)<br/>CRM · Operations"]
+        BUS_DB[("business_db")]
+        BUS --- BUS_DB
+
+        WP["workplace (Start :5020)<br/>Workspace · Collaboration"]
+        WP_DB[("workplace_db")]
+        WP --- WP_DB
+
+        EXAM["learning (Start :5016)<br/>Exams · Assessments"]
+        EXAM_DB[("exam_db")]
+        EXAM --- EXAM_DB
+
+        ANA["analytics (Next.js :5019)<br/>Aggregates · Projections"]
+        ANA_DB[("analytics_db")]
+        ANA --- ANA_DB
     end
 
-    MQ[["RabbitMQ<br/>email queue · domain.events (planned)"]]
-    WK["worker"]
-    MAIL["Mailpit / SMTP"]
+    MQ[["RabbitMQ (:5001/:5002)<br/>email queue · domain.events"]]
+    WK["worker (:5012)"]
+    MAIL["Mailpit / SMTP (:5003/:5004)"]
 
-    Browser --> ACC
-    Browser --> HR & FIN & EXAM
-    HR & FIN & REC & ATT & EXAM -->|"OIDC sign-in"| ACC
-    FIN -->|"GET /api/v1 with app token"| HR
-    ACC --> ACCDB
+    Browser -->|"OIDC SSO"| ACC
+    Browser -->|"Session Cookie"| PEOPLE & FIN & WP & EXAM
+
+    %% Synchronous API
+    FIN -.->|"REST /api/v1 + M2M JWT"| PEOPLE
+
+    %% Asynchronous Events
     ACC -->|"email jobs"| MQ --> WK --> MAIL
+    PEOPLE & FIN & BUS -.->|"domain events (e.g. employee.created)"| MQ
+    MQ -.->|"projections"| ANA
 ```
 
 ---
 
-## 3. Rules
+## 3. Architectural Rules
 
-1. **Identity lives only in `accounts`.** Apps never store passwords or create independent users;
-   they keep a shadow user linked to the accounts `sub`.
-2. **Each domain owns its database.** Only the owning app connects to `<app>_db`; Postgres enforces
-   it (role per domain, `CONNECT` revoked from others). No `admin_db`: administration is HR's.
-3. **No SQL across domains.** Reads go through the owner's `/api/v1` with an accounts-issued app
-   token (D18); later through read models fed by events (D16). Writes to another domain go through
-   its API or an event, never its tables.
-4. **No shared business code.** Shared packages are technical only (`core`, `ui`, later auth/OIDC
-   helpers). Never import another domain's `-db` package.
-5. **Independent apps first, microservices when justified.** Every app can already be deployed on
+1. **Identity lives only in `accounts`.** Apps never store passwords or create independent users; they keep a shadow user linked to the accounts `sub`.
+2. **Each domain owns its database.** Only the owning app connects to its database; Postgres enforces it at the engine level (`REVOKE CONNECT`).
+3. **Database packages (`packages/<context>-db`) are private infrastructure boundaries:**
+   - They contain **only** Prisma schemas, migrations, and the raw client.
+   - Zero business logic lives in `-db` packages.
+   - **Never cross-import `-db` packages:** `apps/people` may never import `@workspace/finance-db` (enforced via ESLint).
+4. **Synchronous vs. Asynchronous Communication:**
+   - **Use REST + M2M JWT** when the caller needs an **immediate answer** (e.g. Finance queries People: _"Is employee X active?"_). App tokens are issued by `accounts` via OAuth Client Credentials and verified locally using JWKS.
+   - **Use RabbitMQ events** when the caller announces an **immutable fact** (e.g. `People` publishes `employee.created.v1`). The caller does not know or wait for consumers.
+5. **Clear Extraction Path:**
+   - Start with high-cohesion bounded contexts to enable fast internal atomic transactions (e.g. `Candidate` hired → `Employee` created in one `people_db` transaction).
+   - If a sub-domain (such as Recruitment) experiences explosive growth or needs dedicated scaling, extract it into its own independent app (`apps/recruitment`) and database (`packages/recruitment-db`) without restructuring the rest of the system.
+
+6. **Independent apps first, microservices when justified.** Every app can already be deployed on
    its own, and any database can move to its own server without untangling.
 
 ---

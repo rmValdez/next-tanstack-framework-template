@@ -217,3 +217,36 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
   business models are not; analytics never owns another domain's source data.
 - **Replaces:** the earlier `realtime` app idea (its job moves to `collaboration`) and a separate
   `admin` app (HR covers it).
+
+### D21. Bounded contexts consolidation with an independent extraction path
+
+- **Date:** 2026-10-07. **Status:** agreed design; production standard.
+- **Context:** The template proved database isolation and OIDC with 11 discrete services. However,
+  splitting tightly coupled domains (e.g. Recruitment → HR → Attendance) into separate microservices
+  creates premature distributed coordination, multiple network hops, and complex distributed transactions
+  for what should be atomic business logic (e.g., `Candidate` hired → `Employee` created).
+- **Chosen:** Consolidate into high-cohesion **Bounded Contexts** as the primary production architecture:
+
+  | Bounded Context     | Framework         | Port    | Included Modules / Sub-domains              | DB Package & Database                      |
+  | :------------------ | :---------------- | :------ | :------------------------------------------ | :----------------------------------------- |
+  | `accounts`          | Next.js 15        | `:5011` | Identity, Users, Orgs, OIDC Authority, JWKS | `@workspace/accounts-db` (`accounts_db`)   |
+  | `people`            | Next.js 15        | `:5010` | HR, Recruitment, Attendance                 | `@workspace/people-db` (`people_db`)       |
+  | `finance`           | Next.js 15        | `:5013` | Payroll, Invoicing, Ledger, Accounting      | `@workspace/finance-db` (`finance_db`)     |
+  | `business`          | Next.js 15        | `:5017` | CRM, Deals, Operations, Workflows           | `@workspace/business-db` (`business_db`)   |
+  | `workplace`         | TanStack Start    | `:5020` | Projects, Documents, Realtime Collaboration | `@workspace/workplace-db` (`workplace_db`) |
+  | `learning` (`exam`) | TanStack Start    | `:5016` | Assessments, Exams, Question Banks          | `@workspace/exam-db` (`exam_db`)           |
+  | `analytics`         | Next.js 15        | `:5019` | Reporting, Aggregates, Event Projections    | `@workspace/analytics-db` (`analytics_db`) |
+  | `worker`            | Node.js (Express) | `:5012` | SMTP Mailer, RabbitMQ queue consumers       | _No domain DB (Broker only)_               |
+
+- **Strict Boundary Rules:**
+  1. **Infrastructure Boundary Only:** `packages/<context>-db` contains _only_ Prisma schema, migrations,
+     and the raw client instance. It contains zero business logic.
+  2. **Zero Cross-Imports:** Each `-db` package is strictly private to its owning service
+     (`apps/people` → `@workspace/people-db`). Automated ESLint rules enforce this boundary.
+  3. **Synchronous vs. Asynchronous:**
+     - **REST + M2M JWT** (Client Credentials + JWKS) when the caller needs an immediate answer.
+     - **RabbitMQ events** (`employee.created.v1`) when announcing an immutable fact that occurred.
+  4. **Documented Extraction Path:** If a sub-domain (such as Recruitment) experiences massive growth
+     or unique compliance needs, it can be cleanly extracted from `apps/people/src/features/recruitment/`
+     into `apps/recruitment/` with its own `recruitment_db`, transitioning internal transactions to M2M APIs
+     without affecting any other bounded context in the platform.

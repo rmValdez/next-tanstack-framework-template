@@ -41,22 +41,33 @@ Done 2026-10-07: `crm` (5017), `operations` (5018), `analytics` (5019) on Next.j
 
 ---
 
-## Step 5: events (D16)
+## Step 5: Bounded Contexts Consolidation & Automated Boundaries (D21)
+
+- **Production consolidation:** organize the 10 domain apps into 5 high-cohesion domain services:
+  `people` (:5010), `finance` (:5013), `business` (:5017), `workplace` (:5020), `exam` (:5016 - learning),
+  `analytics` (:5019), alongside `accounts` (:5011) and `worker` (:5012).
+- **Automated DB Isolation Rule:** enforce via ESLint `no-restricted-imports` that `apps/<context>` can
+  **never** import any database package other than its own `@workspace/<context>-db`.
+- **Extraction Path documented:** maintain the recipe for splitting sub-modules (e.g. `recruitment`) into
+  independent microservices when scale demands it.
+
+---
+
+## Step 6: events (D16)
 
 - `@workspace/core/events`: exchange `domain.events`, versioned event schemas, publisher (from an
   outbox), consumer helper (retry, DLQ, inbox).
-- First flows: recruitment `candidate.hired.v1` → HR creates the employee; HR `employee.created.v1`
-  → finance, attendance; analytics read models fed by events.
-- Recruitment features (candidates, vacancies) are built here, since the flow needs them.
+- First flows: `people` publishes `employee.created.v1` → finance (ledger/payroll entry), attendance;
+  analytics read models fed by events.
+- Synchronous checks (REST + M2M JWT) remain for immediate dependency queries (e.g. Finance checking employee status).
 
-**Done when:** a hire in recruitment creates the employee in HR exactly once, survives a broker
-outage (outbox) and a redelivery (inbox).
+**Done when:** domain event emits from People, reaches Finance and Analytics exactly once, surviving
+broker outages (outbox) and redeliveries (inbox).
 
 ---
 
 ## Not scheduled
 
-- Real features for recruitment, attendance, crm, operations, analytics, collaboration, workspace.
 - Authorization beyond "signed in" (roles per app; HR owns company administration).
 - Realtime transport for collaboration/attendance (Socket.IO or WebSocket inside the Start apps).
 - Per-app Dockerfiles, CI.
