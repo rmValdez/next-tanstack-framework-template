@@ -1,6 +1,6 @@
 # System Architecture & Relationship Map
 
-This document explains the architecture of the platform, the relationships between services, database isolation boundaries, and why services are structured into **Bounded Contexts** (Decision [D21](decisions.md#d21-consolidation-into-6-bounded-contexts--worker-production-grade)).
+This document explains the architecture of the platform, the relationships between services, database isolation boundaries, and why services are structured into **6 Bounded Contexts** (Decisions [D21](decisions.md#d21-consolidation-into-6-bounded-contexts--worker-production-grade) & [D22](decisions.md#d22-final-architecture-6-business-bounded-contexts--1-infrastructure-worker)).
 
 ---
 
@@ -13,44 +13,44 @@ graph TD
     end
 
     subgraph Identity ["Central Identity & Auth (:5011)"]
-        ACC["apps/accounts<br/>(OIDC Provider)"]
+        ACC["apps/accounts<br/>(OIDC Authority & JWKS)"]
         ACC_DB[("accounts_db<br/>User, Sessions, OAuth")]
         ACC --- ACC_DB
     end
 
-    subgraph PeopleContext ["People Operations Context (:5010)"]
-        PEOPLE["apps/people<br/>(HR, Recruitment, Attendance)"]
-        PEOPLE_DB[("people_db<br/>Department, Employee,<br/>JobOpening, Candidate,<br/>AttendanceRecord")]
+    subgraph PeopleContext ["People Bounded Context (:5010)"]
+        PEOPLE["apps/people<br/>(HR, Recruitment, Exam)"]
+        PEOPLE_DB[("people_db<br/>Department, Employee,<br/>JobOpening, Candidate,<br/>Exam, Question, Attempt")]
         PEOPLE --- PEOPLE_DB
     end
 
-    subgraph FinanceContext ["Finance Context (:5013)"]
-        FIN["apps/finance<br/>(Payroll & Accounting)"]
-        FIN_DB[("finance_db<br/>Payroll entries")]
-        FIN --- FIN_DB
+    subgraph WorkforceContext ["Workforce Bounded Context (:5013)"]
+        WF["apps/workforce<br/>(Attendance, Payroll, Ledger)"]
+        WF_DB[("workforce_db<br/>AttendanceRecord, Schedule,<br/>PayrollEntry, Ledger")]
+        WF --- WF_DB
     end
 
-    subgraph BusinessContext ["Business Context (:5017, :5018)"]
-        CRM["apps/crm<br/>(:5017)"]
-        OPS["apps/operations<br/>(:5018)"]
+    subgraph BusinessContext ["Business Bounded Context (:5017)"]
+        BUS["apps/business<br/>(CRM, Marketplace, Operations)"]
+        BUS_DB[("business_db<br/>Customer, Lead, Product,<br/>Order, Workflow Task")]
+        BUS --- BUS_DB
     end
 
-    subgraph LearningContext ["Learning Context (:5016)"]
-        EXAM["apps/exam<br/>(TanStack Start)"]
+    subgraph WorkplaceContext ["Workplace Bounded Context (:5020)"]
+        WP["apps/workplace<br/>(TanStack Start)"]
+        WP_DB[("workplace_db<br/>Channels, Messages,<br/>Projects, Tasks, Docs")]
+        WP --- WP_DB
     end
 
-    subgraph WorkplaceContext ["Workplace Context (:5020, :5021)"]
-        COL["apps/collaboration<br/>(TanStack Start)"]
-        WS["apps/workspace<br/>(TanStack Start)"]
+    subgraph AnalyticsContext ["Analytics Bounded Context (:5019)"]
+        ANA["apps/analytics<br/>(Reporting Read Models)"]
+        ANA_DB[("analytics_db<br/>Aggregated Metrics")]
+        ANA --- ANA_DB
     end
 
-    subgraph AnalyticsContext ["Analytics Context (:5019)"]
-        ANA["apps/analytics<br/>(Aggregates)"]
-    end
-
-    subgraph EventMesh ["Asynchronous Event Mesh"]
+    subgraph EventMesh ["Asynchronous Event Mesh & Worker"]
         MQ["RabbitMQ Broker<br/>(Exchange: domain.events)"]
-        WK["apps/worker (:5012)<br/>(Background consumer)"]
+        WK["apps/worker (:5012)<br/>(Async Infrastructure)"]
         MAIL["Mailpit (SMTP :5004)"]
         MQ --> WK --> MAIL
     end
@@ -58,16 +58,21 @@ graph TD
     %% User Browser Access
     U -->|"OIDC SSO"| ACC
     U -->|"Direct UI"| PEOPLE
-    U -->|"Direct UI"| FIN
-    U -->|"Direct UI"| EXAM
+    U -->|"Direct UI"| WF
+    U -->|"Direct UI"| BUS
+    U -->|"Direct UI"| WP
+    U -->|"Direct UI"| ANA
 
-    %% App to App Synchronous
-    FIN -->|"M2M JWT<br/>GET /api/v1/employees"| PEOPLE
+    %% App to App Synchronous (REST + M2M Token)
+    BUS -->|"M2M JWT<br/>REST Query"| WF
+    WF -->|"M2M JWT<br/>GET /api/v1/employees"| PEOPLE
 
-    %% Asynchronous Events
-    PEOPLE -.->|"domain event<br/>employee.created.v1"| MQ
+    %% Asynchronous Events via Outbox/Inbox
+    PEOPLE -.->|"people.employee.hired.v1"| MQ
+    BUS -.->|"business.order.completed.v1"| MQ
+    WF -.->|"workforce.payroll.completed.v1"| MQ
     MQ -.->|"async projection"| ANA
-    MQ -.->|"async payroll setup"| FIN
+    MQ -.->|"create payroll profile"| WF
 ```
 
 ---

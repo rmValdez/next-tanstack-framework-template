@@ -41,32 +41,62 @@ Done 2026-10-07: `crm` (5017), `operations` (5018), `analytics` (5019) on Next.j
 
 ---
 
-## Step 5: Bounded Contexts Consolidation & Automated Boundaries (D21) 🟡 (In Progress)
+## The Final Architecture Plan (ADR D22)
 
-- **Automated DB Isolation Rule:** ✅ Done. Enforced via ESLint `no-restricted-imports` that `apps/<context>` can
-  **never** import any database package other than its own `@workspace/<context>-db`.
-- **People Bounded Context:** ✅ Done. Consolidated HR, Recruitment, and Attendance into `apps/people` (:5010) and
-  `packages/people-db`. Implemented atomic candidate-to-employee hiring transaction. Retired legacy micro-apps and packages.
-- **Business Bounded Context:** Merge `crm` and `operations` into `apps/business` (`packages/business-db`).
-- **Workplace Bounded Context:** Merge `collaboration` and `workspace` into `apps/workplace` (`packages/workplace-db`, TanStack Start).
-
----
-
-## Step 6: events (D16)
-
-- `@workspace/core/events`: exchange `domain.events`, versioned event schemas, publisher (from an
-  outbox), consumer helper (retry, DLQ, inbox).
-- First flows: `people` publishes `employee.created.v1` → finance (ledger/payroll entry), attendance;
-  analytics read models fed by events.
-- Synchronous checks (REST + M2M JWT) remain for immediate dependency queries (e.g. Finance checking employee status).
-
-**Done when:** domain event emits from People, reaches Finance and Analytics exactly once, surviving
-broker outages (outbox) and redeliveries (inbox).
+We are consolidating the system into **6 business bounded contexts plus 1 infrastructure app**:
+- `accounts` (:5011, `accounts_db`) — Identity, Authentication, OIDC
+- `people` (:5010, `people_db`) — HR, Recruitment, Exam / Assessment
+- `workforce` (:5013, `workforce_db`) — Attendance, Payroll, Financial Ledger
+- `business` (:5017, `business_db`) — CRM, Marketplace, Operations
+- `workplace` (:5020, `workplace_db`, TanStack Start) — Collaboration, Workspace
+- `analytics` (:5019, `analytics_db`) — Reporting, Read Models
+- `worker` (:5012) — Background Jobs, Messaging Infrastructure
 
 ---
 
-## Not scheduled
+## 9-Step Implementation Roadmap
 
-- Authorization beyond "signed in" (roles per app; HR owns company administration).
+### Step 1 — Lock the bounded-context architecture ✅
+- [x] Create and approve ADR D22 defining the 6 contexts + Worker.
+- [x] Document strict database ownership and boundary rules.
+
+### Step 2 — Enforce database boundaries 🟡 (In Progress)
+- [x] ESLint `no-restricted-imports` active on `apps/people`.
+- [ ] Add matching ESLint isolation rules to `accounts`, `workforce`, `business`, `workplace`, and `analytics`.
+
+### Step 3 — Consolidate databases
+- [ ] Merge `attendance` + `finance` models into `packages/workforce-db` (`workforce_db`).
+- [ ] Add `Exam`, `Question`, `ExamAttempt` models to `packages/people-db` (`people_db`). Drop standalone `exam_db`.
+- [ ] Merge `crm` + `operations` + `Marketplace` models into `packages/business-db` (`business_db`).
+- [ ] Merge `collaboration` + `workspace` models into `packages/workplace-db` (`workplace_db`).
+
+### Step 4 — Consolidate applications
+- [ ] Rename/refactor `apps/finance` $\to$ `apps/workforce` (:5013). Move attendance feature here.
+- [ ] Move assessment/exam capability into `apps/people` (:5010). Remove `apps/exam`.
+- [ ] Merge `crm` and `operations` into `apps/business` (:5017).
+- [ ] Merge `collaboration` and `workspace` into `apps/workplace` (:5020).
+
+### Step 5 — Fix internal imports, routes & config
+- [ ] Update ports in `packages/core/src/urls.ts` and `.env.example`.
+- [ ] Update accounts seed `CLIENTS` and `trustedOrigins`.
+- [ ] Update `docker-compose.yml` / `init.sql` for the 6 databases.
+- [ ] Update `turbo.json`.
+
+### Step 6 — Add Marketplace to Business
+- [ ] Add Marketplace feature (`Product`, `Listing`, `Order`, `OrderItem`, `Review`) inside `apps/business`.
+
+### Step 7 — Implement domain events (`@workspace/core/events`)
+- [ ] Build `EventEnvelope`, event schemas, versioning (`v1`), transport interfaces.
+- [ ] Wire RabbitMQ topic exchange `domain.events`.
+
+### Step 8 — Implement Outbox / Inbox
+- [ ] Add `outbox` and `inbox` tables to `people_db`, `workforce_db`, `business_db`.
+- [ ] Worker polls/relays outbox to RabbitMQ.
+- [ ] Consuming domains process events idempotently via inbox.
+
+### Step 9 — Implement real cross-context domain events
+- [ ] Flow 1: `people.employee.hired.v1` $\to$ Workforce (create worker/payroll profile) & Analytics.
+- [ ] Flow 2: `business.order.completed.v1` $\to$ Workforce (financial record) & Analytics.
+- [ ] Flow 3: `workforce.payroll.completed.v1` $\to$ Analytics.
 - Realtime transport for collaboration/attendance (Socket.IO or WebSocket inside the Start apps).
 - Per-app Dockerfiles, CI.

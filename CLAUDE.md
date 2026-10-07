@@ -54,15 +54,20 @@ Executing the production architecture roadmap agreed under D21:
 
 ## Resume here
 
-Follow [docs/history/roadmap.md](docs/history/roadmap.md). Steps 1–4 are done: every app in the agreed list runs
-(own database, SSO, app tokens, global sign-out; exam/collaboration/workspace on TanStack Start).
-**Next: step 5, domain events (D16).** It is the first step that adds domain features
-(recruitment candidates → HR employees), which the user paused; confirm with the user before
-starting it. Feature work for recruitment/attendance etc. is paused by
-the user until those steps are done ("the idea is they are working and running").
+Follow the agreed 9-step plan in [docs/history/roadmap.md](docs/history/roadmap.md) (ADR D22).
+Architecture locked: **6 Bounded Contexts + 1 Worker** (`accounts` :5011, `people` :5010, `workforce` :5013, `business` :5017, `workplace` :5020, `analytics` :5019, `worker` :5012).
 
-Standing rule per step: one `pnpm dev` starts everything, each UI app reaches its landing page with
-no errors; type-check, lint, build pass; docs updated; commit (no Claude trailers).
+**Current position:** Step 1 (ADR D22 documentation) is DONE.
+**Next task when resuming:**
+1. **Step 2:** Complete ESLint database isolation rules across all app configs (`no-restricted-imports`).
+2. **Step 3:** Database consolidation:
+   - Move attendance models to `packages/workforce-db` (renamed from `finance-db`).
+   - Add Exam models (`Exam`, `Question`, `ExamAttempt`) to `packages/people-db`. Drop `exam_db`.
+   - Merge `crm` + `operations` + `Marketplace` models into `packages/business-db`.
+   - Merge `collaboration` + `workspace` models into `packages/workplace-db`.
+3. **Step 4:** Application consolidation (`apps/workforce`, `apps/business`, `apps/workplace`).
+
+Standing rule per step: `pnpm dev` starts cleanly, type-check, lint, and build pass; commit at the end of each step (no Claude co-author trailers).
 
 ## Local environment notes
 

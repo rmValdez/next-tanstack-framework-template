@@ -250,3 +250,31 @@ accounts-issued app token, or (later) exchange events; signing out anywhere sign
      or unique compliance needs, it can be cleanly extracted from `apps/people/src/features/recruitment/`
      into `apps/recruitment/` with its own `recruitment_db`, transitioning internal transactions to M2M APIs
      without affecting any other bounded context in the platform.
+
+### D22. Final Architecture: 6 Business Bounded Contexts + 1 Infrastructure Worker
+
+- **Date:** 2026-10-07. **Status:** agreed architecture; ready for implementation.
+- **Core Principle:** **A capability does not automatically need its own app or database.** Apps, bounded contexts, and databases are separate architectural decisions. Replaces "one feature = one microservice" with high-cohesion business boundaries.
+- **The 6 Bounded Contexts + 1 Infrastructure App:**
+
+  | Context | App (`apps/`) | DB (`packages/*-db`) | Port | Framework | Included Sub-domains & Responsibilities |
+  | :--- | :--- | :--- | :--- | :--- | :--- |
+  | **Accounts** | `accounts` | `accounts_db` | `:5011` | Next.js 15 | Central Identity, Users, Authentication, OAuth/OIDC, JWKS |
+  | **People** | `people` | `people_db` | `:5010` | Next.js 15 | Complete Human Lifecycle: **HR** (Employees, Depts), **Recruitment** (Jobs, Candidates), **Exam** (Screening & Competency Assessments) |
+  | **Workforce** | `workforce` | `workforce_db` | `:5013` | Next.js 15 | Compensation & Timekeeping: **Attendance** (Clock In/Out, Overtime, Tardiness), **Payroll** (Cutoffs, Deductions, Net Pay), **Financial Ledger** |
+  | **Business** | `business` | `business_db` | `:5017` | Next.js 15 | Commercial & Fulfillment Lifecycle: **CRM** (Leads, Customers), **Marketplace** (Products, Listings, Orders), **Operations** (Workflows, Fulfillment) |
+  | **Workplace** | `workplace` | `workplace_db` | `:5020` | TanStack Start | Internal Workspace Environment: **Collaboration** (Chat, Channels), **Workspace** (Projects, Tasks, Documents) |
+  | **Analytics** | `analytics` | `analytics_db` | `:5019` | Next.js 15 | Isolated Read Models, Aggregations, Metrics (fed by domain events only) |
+  | **Worker** | `worker` | _None (Broker)_ | `:5012` | Node.js (Express) | Async Processing Infrastructure: RabbitMQ transport, Email delivery, Scheduled jobs, Retries |
+
+- **Key Architectural Decisions Inside D22:**
+  1. **Exam inside People:** Complete talent lifecycle (`Job Opening → Candidate → Exam → Result → Hiring → Employee`). No distributed calls needed for candidate assessments.
+  2. **Renaming Finance to Workforce:** Encapsulates how employees work and get compensated (`Attendance → Cutoff → Payroll → Ledger`). Allows payroll generation to be an atomic, consistent SQL transaction using authoritative attendance data.
+  3. **Marketplace inside Business:** Unites CRM, Marketplace, and Operations (`Lead → Customer → Order → Operations Fulfillment → Financial Ledger`).
+  4. **Workplace (Collaboration + Workspace):** Internal collaboration and projects naturally belong to a shared workspace domain. Powered by TanStack Start for high client reactivity.
+  5. **Pure Event Infrastructure (Worker):** Worker is not a domain app and owns no business rules; it transports messages and runs async infrastructure.
+  6. **Real Domain Event Boundaries:** Replaces the internal Recruitment $\to$ HR event with authentic cross-context events:
+     - `people.employee.hired.v1` $\to$ Workforce (create payroll profile) & Analytics.
+     - `business.order.completed.v1` $\to$ Workforce (financial processing) & Analytics.
+     - `workforce.payroll.completed.v1` $\to$ Analytics.
+  7. **Transactional Outbox / Inbox:** Each context owns its own `outbox` and `inbox` tables to guarantee reliable event delivery without distributed two-phase commits.
