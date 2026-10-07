@@ -8,7 +8,12 @@
 
 CREATE DATABASE accounts_db;
 
--- hr: employees, departments, company administration.
+-- people: employees, departments, recruitment, attendance, company administration (D21).
+CREATE ROLE people_app LOGIN PASSWORD 'people_pw';
+CREATE DATABASE people_db OWNER people_app;
+CREATE DATABASE people_shadow OWNER people_app;
+
+-- hr: retained for backwards-compatibility during migration.
 CREATE ROLE hr_app LOGIN PASSWORD 'hr_pw';
 CREATE DATABASE hr_db OWNER hr_app;
 CREATE DATABASE hr_shadow OWNER hr_app;  -- `prisma migrate dev` only
@@ -61,6 +66,7 @@ CREATE DATABASE workspace_shadow OWNER workspace_app;
 -- Postgres lets every role connect to every database by default; only the owner may.
 -- accounts connects as postgres in development; no domain role may reach identity data.
 REVOKE CONNECT ON DATABASE accounts_db FROM PUBLIC;
+REVOKE CONNECT ON DATABASE people_db, people_shadow FROM PUBLIC;
 REVOKE CONNECT ON DATABASE hr_db, hr_shadow FROM PUBLIC;
 REVOKE CONNECT ON DATABASE finance_db, finance_shadow FROM PUBLIC;
 REVOKE CONNECT ON DATABASE recruitment_db, recruitment_shadow FROM PUBLIC;

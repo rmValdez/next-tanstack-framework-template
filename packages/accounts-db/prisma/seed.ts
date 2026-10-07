@@ -7,6 +7,12 @@ import { accountsDb } from "../src/client";
 
 const env = parseEnv(
   z.object({
+    NEXT_PUBLIC_PEOPLE_URL: z.string().url().default("http://localhost:5010"),
+    PEOPLE_OAUTH_CLIENT_ID: z.string().default("people"),
+    PEOPLE_OAUTH_CLIENT_SECRET: z
+      .string()
+      .min(32, "PEOPLE_OAUTH_CLIENT_SECRET must be at least 32 characters.")
+      .default("change-me-people-oauth-client-secret-32-chars-x"),
     NEXT_PUBLIC_HR_URL: z.string().url(),
     HR_OAUTH_CLIENT_ID: z.string().min(1),
     HR_OAUTH_CLIENT_SECRET: z
@@ -67,11 +73,11 @@ const env = parseEnv(
 // API_GRANTS in @workspace/core/apis (which APIs it may call).
 const CLIENTS = [
   {
-    app: "hr",
-    name: "HR",
-    clientId: env.HR_OAUTH_CLIENT_ID,
-    clientSecret: env.HR_OAUTH_CLIENT_SECRET,
-    url: env.NEXT_PUBLIC_HR_URL,
+    app: "people",
+    name: "People",
+    clientId: env.PEOPLE_OAUTH_CLIENT_ID,
+    clientSecret: env.PEOPLE_OAUTH_CLIENT_SECRET,
+    url: env.NEXT_PUBLIC_PEOPLE_URL,
   },
   {
     app: "finance",
@@ -79,20 +85,6 @@ const CLIENTS = [
     clientId: env.FINANCE_OAUTH_CLIENT_ID,
     clientSecret: env.FINANCE_OAUTH_CLIENT_SECRET,
     url: env.NEXT_PUBLIC_FINANCE_URL,
-  },
-  {
-    app: "recruitment",
-    name: "Recruitment",
-    clientId: env.RECRUITMENT_OAUTH_CLIENT_ID,
-    clientSecret: env.RECRUITMENT_OAUTH_CLIENT_SECRET,
-    url: env.NEXT_PUBLIC_RECRUITMENT_URL,
-  },
-  {
-    app: "attendance",
-    name: "Attendance",
-    clientId: env.ATTENDANCE_OAUTH_CLIENT_ID,
-    clientSecret: env.ATTENDANCE_OAUTH_CLIENT_SECRET,
-    url: env.NEXT_PUBLIC_ATTENDANCE_URL,
   },
   {
     app: "exam",

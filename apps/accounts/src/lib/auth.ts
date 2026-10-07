@@ -4,6 +4,7 @@ import { API_RESOURCES, API_SCOPES } from "@workspace/core/apis";
 import { MIN_PASSWORD_LENGTH } from "@workspace/core/env";
 import {
   accountsUrl,
+  peopleUrl,
   hrUrl,
   financeUrl,
   recruitmentUrl,
@@ -34,6 +35,7 @@ export const auth = betterAuth({
   // Domain apps are sent back here by the end-session redirect and may call accounts
   // from the browser; Better Auth rejects origins it doesn't know.
   trustedOrigins: [
+    peopleUrl,
     hrUrl,
     financeUrl,
     recruitmentUrl,
