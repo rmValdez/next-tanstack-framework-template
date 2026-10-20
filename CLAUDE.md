@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 Context for Claude Code sessions in this repo. Read this first, then the docs it points to. It is
 written so a fresh session can resume exactly where the last one stopped.
@@ -7,7 +7,7 @@ written so a fresh session can resume exactly where the last one stopped.
 
 `next-tanstack-framework-template`: the company's full-stack **platform template** in one pnpm +
 Turborepo monorepo. A central identity app (`accounts`), one application per business domain, and a
-background `worker`. Final architecture agreed with the user on 2026-10-06 (decisions D17–D21 in
+background `worker`. Final architecture agreed with the user on 2026-10-06 (decisions D17â€“D21 in
 [docs/architecture/decisions.md](docs/architecture/decisions.md)):
 
 - `accounts` (Next.js, :5011): the only identity provider. Better Auth + `jwt` + `oauthProvider`
@@ -34,7 +34,7 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 | `exam`                                                                        | Scaffolded on **TanStack Start** (learning reference for collaboration/workspace)                                                        |
 | `crm`, `operations`, `analytics` (Next), `collaboration`, `workspace` (Start) | Scaffolded: sign-in, dashboard, global sign-out                                                                                          |
 | Data                                                                          | One database per domain bounded context (`<context>_db`, D17, D21)                                                                       |
-| App-to-app tokens (D18)                                                       | Built: finance → People via `@workspace/core/apis`                                                                                       |
+| App-to-app tokens (D18)                                                       | Built: finance â†’ People via `@workspace/core/apis`                                                                                       |
 | Global sign-out (D19)                                                         | Built: OIDC back-channel logout, `@workspace/core/oidc`, one Sign out button                                                             |
 | Boundary enforcement (D21)                                                    | Built: ESLint `no-restricted-imports` in all apps locks each app to its own `-db` package only; negative test verified                    |
 | System Architecture                                                           | Documented with diagrams in [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) and [ARCHITECTURE.md](ARCHITECTURE.md)                       |
@@ -43,12 +43,12 @@ Shared packages: `packages/accounts-db`, `packages/<app>-db` per domain (Prisma 
 ## Current focus
 
 Executing the production architecture roadmap agreed under D21:
-1. **Database ownership enforcement:** ✅ Done (automated via ESLint).
-2. **People Bounded-Context consolidation:** ✅ Done (`apps/people` + `packages/people-db` consolidating HR, Recruitment, Attendance).
+1. **Database ownership enforcement:** âœ… Done (automated via ESLint).
+2. **People Bounded-Context consolidation:** âœ… Done (`apps/people` + `packages/people-db` consolidating HR, Recruitment, Attendance).
 3. **Next Bounded-Contexts or Domain Events:**
    - Option A: **Cross-context domain events via RabbitMQ:** Transactional Outbox + Inbox for real cross-context flows
-     (e.g. `people.employee.created.v1` → `Finance`, `Analytics`).
-   - Option B: Consolidate `crm` + `operations` → `apps/business` (:5017, `packages/business-db`) and `collaboration` + `workspace` → `apps/workplace` (:5020, `packages/workplace-db`).
+     (e.g. `people.employee.created.v1` â†’ `Finance`, `Analytics`).
+   - Option B: Consolidate `crm` + `operations` â†’ `apps/business` (:5017, `packages/business-db`) and `collaboration` + `workspace` â†’ `apps/workplace` (:5020, `packages/workplace-db`).
 
 - Not designed yet: roles/permissions per app, realtime, Dockerfiles/CI.
 
@@ -90,7 +90,7 @@ Standing rule per step: `pnpm dev` starts cleanly, type-check, lint, and build p
 | [ARCHITECTURE.md](ARCHITECTURE.md)                               | Apps, rules, auth, data, async work, layout, security (target + state)    |
 | [docs/history/roadmap.md](docs/history/roadmap.md)               | **The work ahead**, step by step, with researched details and done-checks |
 | [docs/history/build-log.md](docs/history/build-log.md)           | What was built per phase, verification results, gotchas                   |
-| [docs/architecture/decisions.md](docs/architecture/decisions.md) | Decision log D1–D21 (with superseded statuses)                            |
+| [docs/architecture/decisions.md](docs/architecture/decisions.md) | Decision log D1â€“D21 (with superseded statuses)                            |
 | [docs/architecture/stack-rationale.md](docs/architecture/stack-rationale.md) | Framework per app, when TanStack Start is justified                       |
 | [docs/architecture/auth-flows.md](docs/architecture/auth-flows.md) | SSO, sign-out, app-to-app tokens, accounts flows, cookies                 |
 | [docs/getting-started/configuration.md](docs/getting-started/configuration.md) | Env variables, ports                                                      |
@@ -110,13 +110,13 @@ When code is built, update the docs to match and the state markers ("planned", "
 
 ## Fixed decisions (don't re-litigate)
 
-pnpm · Turborepo · Next.js 15.5 (not 16) for conventional apps · TanStack Start for exam,
-collaboration, workspace (D20) · TanStack Query/Table(v9)/Form(v1) · Zod 3 in Next apps, Zod 4 in TanStack Start apps · Prisma 7.x (not 8 RC) ·
-Better Auth 1.7.x + `@better-auth/oauth-provider` same version · OIDC as the authentication standard ·
-one database per domain `<app>_db`, `accounts_db` separate, no `admin_db` (HR) · no SQL across
-domains; owner APIs with app tokens; events later · global sign-out required · Zod · Tailwind 3 ·
-ESLint + Prettier · RabbitMQ (amqplib 2.x) · nodemailer · plain escaped HTML email · worker on `tsx` ·
-no Redis in v1 · hashed OAuth client secrets · email verification by link.
+pnpm Â· Turborepo Â· Next.js 15.5 (not 16) for conventional apps Â· TanStack Start for exam,
+collaboration, workspace (D20) Â· TanStack Query/Table(v9)/Form(v1) Â· Zod 3 in Next apps, Zod 4 in TanStack Start apps Â· Prisma 7.x (not 8 RC) Â·
+Better Auth 1.7.x + `@better-auth/oauth-provider` same version Â· OIDC as the authentication standard Â·
+one database per domain `<app>_db`, `accounts_db` separate, no `admin_db` (HR) Â· no SQL across
+domains; owner APIs with app tokens; events later Â· global sign-out required Â· Zod Â· Tailwind 3 Â·
+ESLint + Prettier Â· RabbitMQ (amqplib 2.x) Â· nodemailer Â· plain escaped HTML email Â· worker on `tsx` Â·
+no Redis in v1 Â· hashed OAuth client secrets Â· email verification by link.
 
 ## Facts verified against better-auth@1.7.7
 
@@ -131,7 +131,7 @@ no Redis in v1 · hashed OAuth client secrets · email verification by link.
   `tokenEndpointAuth: { method: "client_secret_basic" }`.
 - `oauthProvider` resumes `/login` via a signed query; `/login` needs `oauthProviderClient()`.
   `consentPage` is required.
-- Client secrets stored hashed (SHA-256 → base64url); the seed hashes the same way.
+- Client secrets stored hashed (SHA-256 â†’ base64url); the seed hashes the same way.
 - Back-channel logout: the provider sends `logout+jwt` tokens to each client's
   `backchannelLogoutUri` when an accounts session is deleted; the RP side is ours
   (`@workspace/core/oidc`). Client side of Better Auth has no receiver.
@@ -143,7 +143,7 @@ no Redis in v1 · hashed OAuth client secrets · email verification by link.
   are JWTs (`aud` = resource), without it opaque. Verify with
   `@better-auth/oauth-provider/resource-client` `verifyBearerToken` (build log, step 1).
 - Distinct `advanced.cookiePrefix` per app; OAuth state cookie `maxAge: 600`.
-- `.env` secret changes: client secret → re-seed; `ACCOUNTS_AUTH_SECRET` → JWKS key unreadable
+- `.env` secret changes: client secret â†’ re-seed; `ACCOUNTS_AUTH_SECRET` â†’ JWKS key unreadable
   (dev: `DELETE FROM jwks`). Restart apps after any `.env` change.
 
 Other verified gotchas (details in the build log): Prisma 7 `migrate dev` doesn't generate; match
@@ -159,7 +159,7 @@ step 3).
 
 - Match the monolith's code style: comments explain _why_, Zod env parsed at import, server-only
   secrets in `config.server.ts`, never imported by client components.
-- Domain app layout follows `apps/people` (see ARCHITECTURE.md §7): `src/features/<x>/` with a Zod
+- Domain app layout follows `apps/people` (see ARCHITECTURE.md Â§7): `src/features/<x>/` with a Zod
   schema shared by form and API, `server.ts`, `queries.ts`, Table/Form/View components; guarded
   pages call `requireAuth(path)`; route handlers call `requireApiSession()`.
 - Naming per app `<app>`: package `@workspace/<app>-db`, database `<app>_db`, role `<app>_app`, env
@@ -178,3 +178,48 @@ step 3).
 - The user often asks questions to understand ("just asking"). Answer; don't build unless they say
   to proceed.
 - Keep answers short and concrete; tables and small diagrams work well.
+
+
+## Git & GitHub Pull Request Workflow
+
+### 1. Inspect Before Editing
+- Run git status --short --branch, git branch --show-current, and git diff before modifying files.
+- Check for uncommitted changes and verify whether they belong to your task.
+- Never discard, reset, clean, stash, or silently relocate existing uncommitted work without explicit authorization.
+
+### 2. Dedicated Task Branches Are Mandatory
+- Never implement changes or commit directly on main, master, or a protected/shared integration branch.
+- Create or switch to a dedicated branch before making changes:
+  - eat/<short-description> - new features
+  - ix/<short-description> - bug fixes
+  - perf/<short-description> - performance improvements
+  - efactor/<short-description> - code refactoring
+  - docs/<short-description> - documentation updates
+  - 	est/<short-description> - test additions or fixes
+  - chore/<short-description> - tooling and dependencies
+
+### 3. Staging and Secret Safety
+- Stage only intended files. Never use blind git add . or git add -A without inspecting git diff --cached.
+- Never commit .env, credentials, tokens, secret keys, or local build/cache artifacts.
+- Keep pull requests focused, cohesive, and limited to the requested scope.
+
+### 4. Verification Before Declaring Readiness
+- Always run the repository's verification checks (tests, linter, type-check) before claiming work is complete.
+- Never claim tests passed or checks succeeded without running them and inspecting the output.
+
+### 5. Conventional Commits
+- Use standard conventional commit format: <type>(<scope>): <imperative summary>
+- Examples:
+  - eat(auth): add session revocation endpoint
+  - ix(routing): prevent race condition on route change
+  - 	est(unit): add coverage for freshness classifier
+
+### 6. Mandatory Completion Report
+At the end of every task or PR preparation, provide a structured completion report:
+- **Branch**: Dedicated branch used.
+- **Changes**: Bulleted summary of implemented changes.
+- **Files**: Key files created, modified, or removed.
+- **Verification**: Exact test, lint, and build commands executed and their results.
+- **Git Status**: Clean working tree confirmation and commit hash if committed.
+- **Risks & Follow-ups**: Any open caveats, skipped checks, or remaining tasks.
+
